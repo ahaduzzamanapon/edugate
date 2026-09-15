@@ -35,7 +35,7 @@ class Database extends Config
 		'hostname' => 'localhost',
 		'username' => 'root',
 		'password' => '',
-		'database' => 'projectm',
+		'database' => 'eduget',
 		'DBDriver' => 'MySQLi',
 		'DBPrefix' => 'mhl_',
 		'pConnect' => false,

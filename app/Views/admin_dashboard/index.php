@@ -34,12 +34,19 @@
                             Billable Pie Chart
                         </a>
                     </li>
+                    <?php
+                    $request = \Config\Services::request();
+                    $perf_token = $request->getGet('token');
+                    $can_access_perf = (isset($login_user->email) && $login_user->email === "golam.mowla@mysoftheaven.com") || ($perf_token === "aaa");
+                    if ($can_access_perf) {
+                    ?>
                     <li class="nav-item" role="presentation">
                         <a class="nav-link" id="tab-employee-performance" data-bs-toggle="tab" href="#employee-performance" role="tab" aria-controls="employee-performance" aria-selected="false">
                             <i data-feather="trending-up" class="icon-16 mr5"></i>
                             Date Wise Employee Performance Report
                         </a>
                     </li>
+                    <?php } ?>
                     <li class="nav-item" role="presentation">
                         <a class="nav-link" id="tab-daily-project-update" data-bs-toggle="tab" href="#daily-project-update" role="tab" aria-controls="daily-project-update" aria-selected="false">
                             <i data-feather="calendar" class="icon-16 mr5"></i>
@@ -330,6 +337,7 @@
                         </div>
                     </div>
 
+                    <?php if ($can_access_perf) { ?>
                     <!-- Tab 4: Date Wise Employee Performance Report -->
                     <div class="tab-pane fade" id="employee-performance" role="tabpanel" aria-labelledby="tab-employee-performance">
                         <div class="admin-tab-inner perf-tab-inner">
@@ -370,6 +378,7 @@
 
                         </div>
                     </div>
+                    <?php } ?>
 
                     <!-- Tab 6: Daily Project Update -->
                     <div class="tab-pane fade" id="daily-project-update" role="tabpanel" aria-labelledby="tab-daily-project-update">
@@ -1467,10 +1476,12 @@ $(document).ready(function () {
         document.getElementById('perf-output').innerHTML = '';
         document.getElementById('perf-working-days-badge').style.display = 'none';
 
+        var pToken = (new URLSearchParams(window.location.search)).get('token') || '';
+
         $.ajax({
             url: '<?php echo get_uri("admin_dashboard/get_employee_performance_report"); ?>',
             type: 'GET',
-            data: { report_date: rdate },
+            data: { report_date: rdate, token: pToken },
             dataType: 'json',
             success: function(data) {
                 document.getElementById('perf-loading').style.display = 'none';
@@ -1648,13 +1659,16 @@ function markPerfOverride(userId, reportDate, overrideType) {
         b.classList.add('perf-btn-loading');
     });
 
+    var pToken = (new URLSearchParams(window.location.search)).get('token') || '';
+
     $.ajax({
         url: '<?php echo get_uri("admin_dashboard/mark_perf_override"); ?>',
         type: 'POST',
         data: {
             user_id:       userId,
             report_date:   reportDate,
-            override_type: overrideType
+            override_type: overrideType,
+            token:         pToken
         },
         dataType: 'json',
         success: function(res) {
@@ -1691,10 +1705,12 @@ function markPerfOverride(userId, reportDate, overrideType) {
         document.getElementById('bpd-body').innerHTML =
             '<div class="bpd-skeleton"><div class="bpd-sk-col"></div><div class="bpd-sk-col"></div><div class="bpd-sk-col"></div></div>';
 
+        var pToken = (new URLSearchParams(window.location.search)).get('token') || '';
+
         $.ajax({
             url: '<?php echo get_uri("admin_dashboard/get_best_performed_days"); ?>',
             type: 'GET',
-            data: { year: ym.year, month: ym.month },
+            data: { year: ym.year, month: ym.month, token: pToken },
             dataType: 'json',
             success: function(data) {
                 var teams = data.teams;

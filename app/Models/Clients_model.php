@@ -45,6 +45,16 @@ class Clients_model extends Crud_model {
             $where .= " AND $clients_table.lead_status_id='$status'";
         }
 
+        $allowed_status_ids = $this->_get_clean_value($options, "allowed_status_ids");
+        if ($allowed_status_ids !== null && is_array($allowed_status_ids)) {
+            $status_list = implode(",", array_map('intval', $allowed_status_ids));
+            if (!empty($status_list)) {
+                $where .= " AND $clients_table.lead_status_id IN ($status_list)";
+            } else {
+                $where .= " AND 1=0";
+            }
+        }
+
         $source = $this->_get_clean_value($options, "source");
         if ($source) {
             $where .= " AND $clients_table.lead_source_id='$source'";
@@ -366,6 +376,16 @@ class Clients_model extends Crud_model {
         $status = $this->_get_clean_value($options, "status");
         if ($status) {
             $where .= " AND $clients_table.lead_status_id='$status'";
+        }
+
+        $allowed_status_ids = $this->_get_clean_value($options, "allowed_status_ids");
+        if ($allowed_status_ids !== null && is_array($allowed_status_ids)) {
+            $status_list = implode(",", array_map('intval', $allowed_status_ids));
+            if (!empty($status_list)) {
+                $where .= " AND $clients_table.lead_status_id IN ($status_list)";
+            } else {
+                $where .= " AND 1=0";
+            }
         }
 
         $owner_id = $this->_get_clean_value($options, "owner_id");

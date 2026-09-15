@@ -1362,7 +1362,15 @@ class Settings extends Security_Controller {
 
     function save_lead_settings() {
 
-        $settings = array("can_create_lead_from_public_form", "enable_embedded_form_to_get_leads", "after_submit_action_of_public_lead_form", "after_submit_action_of_public_lead_form_redirect_url", "hidden_fields_on_lead_embedded_form");
+        $settings = array(
+            "can_create_lead_from_public_form",
+            "enable_embedded_form_to_get_leads",
+            "after_submit_action_of_public_lead_form",
+            "after_submit_action_of_public_lead_form_redirect_url",
+            "hidden_fields_on_lead_embedded_form",
+            "facebook_lead_verify_token",
+            "facebook_page_access_token"
+        );
 
         foreach ($settings as $setting) {
             $value = $this->request->getPost($setting);

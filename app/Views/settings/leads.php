@@ -101,6 +101,55 @@
             </div>
         </div>
 
+        <!-- Facebook Lead Ads Webhook Settings -->
+        <div class="form-group border-top pt20 mt20">
+            <h5 class="fw-bold text-primary mb15"><i data-feather="facebook" class="icon-16 mr5"></i> Facebook Lead Ads Integration</h5>
+            
+            <div class="row mb15">
+                <label for="fb_webhook_url" class="col-md-4">Webhook Callback URL</label>
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="fb_webhook_url" value="<?php echo get_uri("facebook_lead_webhook"); ?>" readonly />
+                        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('<?php echo get_uri("facebook_lead_webhook"); ?>'); appAlert.success('URL Copied!');"><i data-feather="copy" class="icon-14"></i> Copy</button>
+                    </div>
+                    <small class="text-muted">Paste this Callback URL into Meta App &gt; Webhooks &gt; Leadgen setup.</small>
+                </div>
+            </div>
+
+            <div class="row mb15">
+                <label for="facebook_lead_verify_token" class="col-md-4">Webhook Verify Token</label>
+                <div class="col-md-8">
+                    <?php
+                    echo form_input(array(
+                        "id" => "facebook_lead_verify_token",
+                        "name" => "facebook_lead_verify_token",
+                        "value" => get_setting("facebook_lead_verify_token") ? get_setting("facebook_lead_verify_token") : "eduget_fb_verify_token_2026",
+                        "class" => "form-control",
+                        "placeholder" => "Enter verify token"
+                    ));
+                    ?>
+                    <small class="text-muted">Use this exact token in Meta Webhook configuration.</small>
+                </div>
+            </div>
+
+            <div class="row mb15">
+                <label for="facebook_page_access_token" class="col-md-4">Page Access Token</label>
+                <div class="col-md-8">
+                    <?php
+                    echo form_textarea(array(
+                        "id" => "facebook_page_access_token",
+                        "name" => "facebook_page_access_token",
+                        "value" => get_setting("facebook_page_access_token"),
+                        "class" => "form-control",
+                        "rows" => 3,
+                        "placeholder" => "Paste Meta Page Access Token or System User Token here"
+                    ));
+                    ?>
+                    <small class="text-muted">Required to fetch lead name, phone, email, country, qualification, etc. from Facebook Graph API.</small>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="card-footer">

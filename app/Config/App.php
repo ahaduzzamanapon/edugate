@@ -14,8 +14,14 @@ class App extends BaseConfig {
 
     private function set_base_url() {
         if (!$this->baseURL) {
+            if (PHP_SAPI === 'cli' || empty($_SERVER['HTTP_HOST'])) {
+                $this->baseURL = 'http://localhost/edugetcrm/';
+                return;
+            }
 
-            $domain = $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
+            $host = $_SERVER['HTTP_HOST'];
+            $script = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '';
+            $domain = $host . $script;
 
             $domain = preg_replace('/index.php.*/', '', $domain);
             $domain = strtolower($domain);

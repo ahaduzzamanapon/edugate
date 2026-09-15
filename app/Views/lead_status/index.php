@@ -14,6 +14,7 @@
                     <li><a role="presentation" data-bs-toggle="tab" href="javascript:;" data-bs-target="#lead-status-tab"> <?php echo app_lang('lead_status'); ?></a></li>
                     <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("lead_source"); ?>" data-bs-target="#lead-source-tab"><?php echo app_lang('lead_source'); ?></a></li>
                     <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/leads"); ?>" data-bs-target="#lead-settings-tab"><?php echo app_lang('leads'); ?></a></li>
+                    <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("lead_status/role_permissions"); ?>" data-bs-target="#lead-role-permissions-tab"><i data-feather="shield" class="icon-16 mr5"></i> Lead Role Status Settings</a></li>
                     <div class="tab-title clearfix no-border">
                         <div class="title-button-group">
                             <?php echo modal_anchor(get_uri("lead_status/modal_form"), "<i data-feather='plus-circle' class='icon-16'></i> " . app_lang('add_lead_status'), array("class" => "btn btn-default", "title" => app_lang('add_lead_status'), "id" => "lead-status-source-add-btn")); ?>
@@ -32,6 +33,7 @@
 
                     <div role="tabpanel" class="tab-pane fade" id="lead-source-tab"></div>
                     <div role="tabpanel" class="tab-pane fade" id="lead-settings-tab"></div>
+                    <div role="tabpanel" class="tab-pane fade" id="lead-role-permissions-tab"></div>
                 </div>
 
             </div>

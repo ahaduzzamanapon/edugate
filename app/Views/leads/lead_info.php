@@ -128,6 +128,30 @@
                 );
                 ?>
             </li>
+            <?php if ($lead_info->preferred_country) { ?>
+                <li class="list-group-item">
+                    <span class="mr10" title="Preferred Country"><i data-feather="globe" class="icon-16"></i></span>
+                    <strong>Country:</strong> <span class="badge bg-primary text-white"><?php echo $lead_info->preferred_country; ?></span>
+                </li>
+            <?php } ?>
+            <?php if ($lead_info->qualification) { ?>
+                <li class="list-group-item">
+                    <span class="mr10" title="Academic Qualification"><i data-feather="book-open" class="icon-16"></i></span>
+                    <strong>Qualification:</strong> <span><?php echo $lead_info->qualification; ?></span>
+                </li>
+            <?php } ?>
+            <?php if ($lead_info->ielts_status || $lead_info->ielts_score) { ?>
+                <li class="list-group-item">
+                    <span class="mr10" title="IELTS Status"><i data-feather="award" class="icon-16"></i></span>
+                    <strong>IELTS:</strong> <span><?php echo $lead_info->ielts_status; ?><?php echo $lead_info->ielts_score ? " (Score: " . $lead_info->ielts_score . ")" : ""; ?></span>
+                </li>
+            <?php } ?>
+            <?php if ($lead_info->preferred_intake) { ?>
+                <li class="list-group-item">
+                    <span class="mr10" title="Preferred Intake"><i data-feather="calendar" class="icon-16"></i></span>
+                    <strong>Intake:</strong> <span class="badge bg-info text-white"><?php echo $lead_info->preferred_intake; ?></span>
+                </li>
+            <?php } ?>
             <?php if ($lead_info->address || $lead_info->city || $lead_info->state || $lead_info->zip || $lead_info->country) { ?>
                 <li class="list-group-item">
                     <div class="d-flex">

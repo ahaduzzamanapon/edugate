@@ -30,7 +30,8 @@ class Rise extends BaseConfig {
         "notifications/count_notifications", "notifications/get_notifications",
         "messages/count_notifications",
         "microsoft_api/save_outlook_smtp_access_token",
-        "event_tracker.*+"
+        "event_tracker.*+",
+        "facebook_lead_webhook.*+"
     );
 
     public function __construct() {

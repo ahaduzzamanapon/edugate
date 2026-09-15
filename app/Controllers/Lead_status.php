@@ -128,6 +128,87 @@ class Lead_status extends Security_Controller {
         );
     }
 
+    /* Lead Role Status Permissions Admin Panel */
+
+    function role_permissions() {
+        $roles_model = model("App\Models\Roles_model");
+        $view_data['roles_dropdown'] = $roles_model->get_all_where(array("deleted" => 0))->getResult();
+        $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
+        return $this->template->view("lead_status/role_permissions", $view_data);
+    }
+
+    function get_role_status_permissions_data($role_id = 0) {
+        validate_numeric_value($role_id);
+        if (!$role_id) {
+            echo json_encode(array("success" => false, "message" => "Role ID is required"));
+            return;
+        }
+
+        $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+        $permission = $lead_role_permissions_model->get_permission_by_role($role_id);
+
+        $can_view_status_ids = array();
+        $allowed_transitions = array();
+        $can_upload_files = 0;
+
+        if ($permission && $permission->id) {
+            $can_view_status_ids = !empty($permission->can_view_status_ids) ? json_decode($permission->can_view_status_ids, true) : array();
+            $allowed_transitions = !empty($permission->allowed_transitions) ? json_decode($permission->allowed_transitions, true) : array();
+            $can_upload_files = (int)$permission->can_upload_files;
+        }
+
+        echo json_encode(array(
+            "success" => true,
+            "can_view_status_ids" => is_array($can_view_status_ids) ? $can_view_status_ids : array(),
+            "allowed_transitions" => is_array($allowed_transitions) ? $allowed_transitions : array(),
+            "can_upload_files" => $can_upload_files
+        ));
+    }
+
+    function save_role_status_permissions() {
+        $role_id = (int)$this->request->getPost('role_id');
+        if (!$role_id) {
+            echo json_encode(array("success" => false, "message" => "Role ID is required"));
+            return;
+        }
+
+        $can_view_status_ids = $this->request->getPost('can_view_status_ids');
+        if (!is_array($can_view_status_ids)) {
+            $can_view_status_ids = array();
+        }
+
+        $allowed_transitions = $this->request->getPost('allowed_transitions');
+        if (!is_array($allowed_transitions)) {
+            $allowed_transitions = array();
+        }
+
+        $can_upload_files = (int)$this->request->getPost('can_upload_files');
+
+        $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+        $existing = $lead_role_permissions_model->get_permission_by_role($role_id);
+
+        $data = array(
+            "role_id" => $role_id,
+            "can_view_status_ids" => json_encode(array_values(array_unique(array_map('intval', $can_view_status_ids)))),
+            "allowed_transitions" => json_encode($allowed_transitions),
+            "can_upload_files" => $can_upload_files ? 1 : 0,
+            "updated_at" => get_current_utc_time()
+        );
+
+        $id = ($existing && $existing->id) ? $existing->id : 0;
+        if (!$id) {
+            $data["created_at"] = get_current_utc_time();
+        }
+
+        $save_id = $lead_role_permissions_model->ci_save($data, $id);
+
+        if ($save_id) {
+            echo json_encode(array("success" => true, "message" => app_lang("settings_updated")));
+        } else {
+            echo json_encode(array("success" => false, "message" => app_lang("error_occurred")));
+        }
+    }
+
 }
 
 /* End of file Lead_status.php */

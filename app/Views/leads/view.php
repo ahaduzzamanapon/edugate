@@ -27,7 +27,19 @@
                         <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("leads/tickets/" . $lead_info->id); ?>" data-bs-target="#lead-tickets"> <?php echo app_lang('tickets'); ?></a></li>
                     <?php } ?>
 
-                    <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("leads/files/" . $lead_info->id); ?>" data-bs-target="#lead-files"><?php echo app_lang('files'); ?></a></li>
+                    <?php
+                    $can_view_files = false;
+                    $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+                    $user_role_perm = (isset($login_user->role_id) && $login_user->role_id) ? $lead_role_permissions_model->get_permission_by_role($login_user->role_id) : null;
+                    $has_upload_perm = ($user_role_perm && $user_role_perm->can_upload_files);
+                    $status_title = strtolower(trim($lead_info->lead_status_title));
+                    $tier_eligible = in_array($status_title, ['continue / counseling', 'admission team', 'admitted / closed-won', 'continue']);
+                    if ($login_user->is_admin || $has_upload_perm || $tier_eligible) {
+                        $can_view_files = true;
+                    }
+                    if ($can_view_files) { ?>
+                        <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("leads/files/" . $lead_info->id); ?>" data-bs-target="#lead-files"><i data-feather="file-text" class="icon-16 mr5"></i> Documents / Files</a></li>
+                    <?php } ?>
 
                     <?php
                     $hook_tabs = array();

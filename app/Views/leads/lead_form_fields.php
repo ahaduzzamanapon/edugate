@@ -134,6 +134,92 @@
         </div>
     </div>
 </div>
+
+<!-- Education Consultancy Fields -->
+<div class="form-group">
+    <div class="row">
+        <label for="preferred_country" class="<?php echo $label_column; ?>">Preferred Country</label>
+        <div class="<?php echo $field_column; ?>">
+            <?php
+            echo form_input(array(
+                "id" => "preferred_country",
+                "name" => "preferred_country",
+                "value" => $model_info->preferred_country ? $model_info->preferred_country : "",
+                "class" => "form-control",
+                "placeholder" => "e.g. UK, USA, Canada, Australia, Europe"
+            ));
+            ?>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="row">
+        <label for="qualification" class="<?php echo $label_column; ?>">Academic Qualification</label>
+        <div class="<?php echo $field_column; ?>">
+            <?php
+            echo form_input(array(
+                "id" => "qualification",
+                "name" => "qualification",
+                "value" => $model_info->qualification ? $model_info->qualification : "",
+                "class" => "form-control",
+                "placeholder" => "e.g. HSC / A-Level, Bachelor's, Master's"
+            ));
+            ?>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="row">
+        <label for="ielts_status" class="<?php echo $label_column; ?>">IELTS Status & Score</label>
+        <div class="<?php echo $field_column; ?>">
+            <div class="row">
+                <div class="col-md-7">
+                    <?php
+                    $ielts_options = array(
+                        "" => "- Select IELTS Status -",
+                        "Not Appeared" => "Not Appeared",
+                        "Prepared / Planning" => "Prepared / Planning",
+                        "Appeared / Completed" => "Appeared / Completed",
+                        "Exempted / MOI" => "Exempted / MOI",
+                        "PTE / Duolingo" => "PTE / Duolingo"
+                    );
+                    echo form_dropdown("ielts_status", $ielts_options, array($model_info->ielts_status), "class='select2'");
+                    ?>
+                </div>
+                <div class="col-md-5">
+                    <?php
+                    echo form_input(array(
+                        "id" => "ielts_score",
+                        "name" => "ielts_score",
+                        "value" => $model_info->ielts_score ? $model_info->ielts_score : "",
+                        "class" => "form-control",
+                        "placeholder" => "Score / Band (e.g. 6.5)"
+                    ));
+                    ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="row">
+        <label for="preferred_intake" class="<?php echo $label_column; ?>">Preferred Intake</label>
+        <div class="<?php echo $field_column; ?>">
+            <?php
+            echo form_input(array(
+                "id" => "preferred_intake",
+                "name" => "preferred_intake",
+                "value" => $model_info->preferred_intake ? $model_info->preferred_intake : "",
+                "class" => "form-control",
+                "placeholder" => "e.g. September 2026, January 2027"
+            ));
+            ?>
+        </div>
+    </div>
+</div>
 <div class="form-group">
     <div class="row">
         <label for="address" class="<?php echo $label_column; ?>"><?php echo app_lang('address'); ?></label>

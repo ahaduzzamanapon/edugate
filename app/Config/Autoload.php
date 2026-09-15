@@ -103,6 +103,6 @@ class Autoload extends AutoloadConfig {
      *
      * @var list<string>
      */
-    public $helpers = [];
+    public $helpers = ['url', 'file', 'form', 'language', 'general', 'date_time', 'app_files', 'currency', 'plugin'];
 
 }

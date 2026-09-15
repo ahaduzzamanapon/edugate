@@ -1,0 +1,29 @@
+name: Deploy to FTP
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  web-deploy:
+    name: Deploy to FTP Server
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
+
+    - name: 📂 Sync files via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: 173.212.221.176
+        port: 1021
+        username: edugatecrm_mysoftheaven
+        password: ${{ secrets.FTP_PASSWORD || '6268252da5df4' }}
+        server-dir: /
+        dangerous-clean-slate: false
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          backup_eduget_before_clean.sql
