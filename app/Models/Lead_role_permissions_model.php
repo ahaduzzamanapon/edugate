@@ -82,8 +82,13 @@ class Lead_role_permissions_model extends Crud_model {
         }
 
         $transitions = json_decode($perm->allowed_transitions, true);
-        if (!is_array($transitions)) {
+        if (!is_array($transitions) || empty($transitions)) {
             return true;
+        }
+
+        // If simple flat list of target statuses: e.g. [16, 17, 18]
+        if (isset($transitions[0])) {
+            return in_array((int)$to_status_id, array_map('intval', $transitions));
         }
 
         $from_key = (string)$from_status_id;

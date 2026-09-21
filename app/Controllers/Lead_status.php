@@ -148,19 +148,35 @@ class Lead_status extends Security_Controller {
         $permission = $lead_role_permissions_model->get_permission_by_role($role_id);
 
         $can_view_status_ids = array();
-        $allowed_transitions = array();
+        $can_move_to_status_ids = array();
         $can_upload_files = 0;
 
         if ($permission && $permission->id) {
             $can_view_status_ids = !empty($permission->can_view_status_ids) ? json_decode($permission->can_view_status_ids, true) : array();
-            $allowed_transitions = !empty($permission->allowed_transitions) ? json_decode($permission->allowed_transitions, true) : array();
+            $transitions = !empty($permission->allowed_transitions) ? json_decode($permission->allowed_transitions, true) : array();
+
+            if (is_array($transitions)) {
+                if (isset($transitions[0])) {
+                    $can_move_to_status_ids = $transitions;
+                } else {
+                    $targets = array();
+                    foreach ($transitions as $from_id => $to_ids) {
+                        if (is_array($to_ids)) {
+                            foreach ($to_ids as $to_id) {
+                                $targets[] = (int)$to_id;
+                            }
+                        }
+                    }
+                    $can_move_to_status_ids = array_values(array_unique($targets));
+                }
+            }
             $can_upload_files = (int)$permission->can_upload_files;
         }
 
         echo json_encode(array(
             "success" => true,
-            "can_view_status_ids" => is_array($can_view_status_ids) ? $can_view_status_ids : array(),
-            "allowed_transitions" => is_array($allowed_transitions) ? $allowed_transitions : array(),
+            "can_view_status_ids" => is_array($can_view_status_ids) ? array_values(array_map('intval', $can_view_status_ids)) : array(),
+            "can_move_to_status_ids" => is_array($can_move_to_status_ids) ? array_values(array_map('intval', $can_move_to_status_ids)) : array(),
             "can_upload_files" => $can_upload_files
         ));
     }
@@ -177,9 +193,12 @@ class Lead_status extends Security_Controller {
             $can_view_status_ids = array();
         }
 
-        $allowed_transitions = $this->request->getPost('allowed_transitions');
-        if (!is_array($allowed_transitions)) {
-            $allowed_transitions = array();
+        $can_move_to_status_ids = $this->request->getPost('can_move_to_status_ids');
+        if (!is_array($can_move_to_status_ids)) {
+            $can_move_to_status_ids = $this->request->getPost('allowed_transitions');
+            if (!is_array($can_move_to_status_ids)) {
+                $can_move_to_status_ids = array();
+            }
         }
 
         $can_upload_files = (int)$this->request->getPost('can_upload_files');
@@ -190,7 +209,7 @@ class Lead_status extends Security_Controller {
         $data = array(
             "role_id" => $role_id,
             "can_view_status_ids" => json_encode(array_values(array_unique(array_map('intval', $can_view_status_ids)))),
-            "allowed_transitions" => json_encode($allowed_transitions),
+            "allowed_transitions" => json_encode(array_values(array_unique(array_map('intval', $can_move_to_status_ids)))),
             "can_upload_files" => $can_upload_files ? 1 : 0,
             "updated_at" => get_current_utc_time()
         );
