@@ -67,6 +67,7 @@ class App_Controller extends Controller {
     public $Dashboards_model;
     public $Lead_status_model;
     public $Lead_source_model;
+    public $Lead_countries_model;
     public $Order_items_model;
     public $Orders_model;
     public $Order_status_model;
@@ -188,6 +189,7 @@ class App_Controller extends Controller {
             'Dashboards_model',
             'Lead_status_model',
             'Lead_source_model',
+            'Lead_countries_model',
             'Order_items_model',
             'Orders_model',
             'Order_status_model',

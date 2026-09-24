@@ -13,6 +13,7 @@
                 <ul data-bs-toggle="ajax-tab" class="nav nav-tabs bg-white title" role="tablist">
                     <li><a role="presentation" data-bs-toggle="tab" href="javascript:;" data-bs-target="#lead-status-tab"> <?php echo app_lang('lead_status'); ?></a></li>
                     <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("lead_source"); ?>" data-bs-target="#lead-source-tab"><?php echo app_lang('lead_source'); ?></a></li>
+                    <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("country_settings"); ?>" data-bs-target="#country-settings-tab"><i data-feather="globe" class="icon-16 mr5"></i> Country Settings</a></li>
                     <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/leads"); ?>" data-bs-target="#lead-settings-tab"><?php echo app_lang('leads'); ?></a></li>
                     <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("lead_status/role_permissions"); ?>" data-bs-target="#lead-role-permissions-tab"><i data-feather="shield" class="icon-16 mr5"></i> Lead Role Status Settings</a></li>
                     <div class="tab-title clearfix no-border">
@@ -32,6 +33,7 @@
                     </div>
 
                     <div role="tabpanel" class="tab-pane fade" id="lead-source-tab"></div>
+                    <div role="tabpanel" class="tab-pane fade" id="country-settings-tab"></div>
                     <div role="tabpanel" class="tab-pane fade" id="lead-settings-tab"></div>
                     <div role="tabpanel" class="tab-pane fade" id="lead-role-permissions-tab"></div>
                 </div>
@@ -100,6 +102,7 @@
 
             //lead status
             if (activeField === "#lead-status-tab") {
+                addButton.removeClass("hide");
                 addButton.attr("title", "<?php echo app_lang("add_lead_status"); ?>");
                 addButton.attr("data-title", "<?php echo app_lang("add_lead_status"); ?>");
                 addButton.attr("data-action-url", "<?php echo get_uri("lead_status/modal_form"); ?>");
@@ -107,12 +110,23 @@
                 addButton.html("<?php echo "<i data-feather='plus-circle' class='icon-16'></i> " . app_lang('add_lead_status'); ?>");
                 feather.replace();
             } else if (activeField === "#lead-source-tab") {
+                addButton.removeClass("hide");
                 addButton.attr("title", "<?php echo app_lang("add_lead_source"); ?>");
                 addButton.attr("data-title", "<?php echo app_lang("add_lead_source"); ?>");
                 addButton.attr("data-action-url", "<?php echo get_uri("lead_source/modal_form"); ?>");
 
                 addButton.html("<?php echo "<i data-feather='plus-circle' class='icon-16'></i> " . app_lang('add_lead_source'); ?>");
                 feather.replace();
+            } else if (activeField === "#country-settings-tab") {
+                addButton.removeClass("hide");
+                addButton.attr("title", "Add Country");
+                addButton.attr("data-title", "Add Country");
+                addButton.attr("data-action-url", "<?php echo get_uri("country_settings/modal_form"); ?>");
+
+                addButton.html("<i data-feather='plus-circle' class='icon-16'></i> Add Country");
+                feather.replace();
+            } else {
+                addButton.addClass("hide");
             }
         });
     });

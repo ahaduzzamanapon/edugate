@@ -6,7 +6,6 @@
 
         <div class="tab-title clearfix no-border">
             <div class="title-button-group">
-                <?php echo modal_anchor(get_uri("labels/modal_form"), "<i data-feather='tag' class='icon-16'></i> " . app_lang('manage_labels'), array("class" => "btn btn-default", "title" => app_lang('manage_labels'), "data-post-type" => "client")); ?>
                 <?php echo modal_anchor(get_uri("leads/import_modal_form"), "<i data-feather='upload' class='icon-16'></i> " . app_lang('import_leads'), array("class" => "btn btn-default", "title" => app_lang('import_leads'))); ?>
                 <?php echo modal_anchor(get_uri("leads/modal_form"), "<i data-feather='plus-circle' class='icon-16'></i> " . app_lang('add_lead'), array("class" => "btn btn-default", "title" => app_lang('add_lead'))); ?>
             </div>
@@ -46,15 +45,14 @@
             smartFilterIdentity: "all_leads_list", //a to z and _ only. should be unique to avoid conflicts
             selectionHandler: {batchUpdateUrl: batchUpdateUrl, batchDeleteUrl: batchDeleteUrl},
             ignoreSavedFilter: ignoreSavedFilter,
-            order: [[5, "desc"]],
+            order: [[4, "desc"]],
             columns: [
                 {title: "<?php echo app_lang("name") ?>", "class": "all", order_by: "company_name"},
                 {title: "<?php echo app_lang("primary_contact") ?>", order_by: "primary_contact"},
                 {title: "<?php echo app_lang("phone") ?>"},
                 {title: "<?php echo app_lang("owner") ?>", order_by: "owner_name"},
-                {title: "<?php echo app_lang("labels") ?>"},
                 {visible: false, searchable: false, order_by: "created_date"},
-                {title: "<?php echo app_lang("created_at") ?>", "iDataSort": 5, order_by: "created_date"},
+                {title: "<?php echo app_lang("created_at") ?>", "iDataSort": 4, order_by: "created_date"},
                 {title: "<?php echo app_lang("status") ?>", order_by: "status"}
                 <?php echo $custom_field_headers; ?>,
                 {title: '<i data-feather="menu" class="icon-16"></i>', "class": "text-center option w100"}
@@ -64,13 +62,12 @@
                  {name: "owner_id", class: "w200", options: <?php echo json_encode($owners_dropdown); ?>},
                 <?php } ?>
                 {name: "status", class: "w200", options: <?php echo view("leads/lead_statuses"); ?>},
-            {name: "label_id", class: "w200", options: <?php echo $labels_dropdown; ?>},
             {name: "source", class: "w200", options: <?php echo view("leads/lead_sources"); ?>} ,
             <?php echo $custom_field_filters; ?>
             ],
             rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 6, 7], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 6, 7], '<?php echo $custom_field_headers; ?>')
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 5, 6], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 5, 6], '<?php echo $custom_field_headers; ?>')
     });
     }
     );

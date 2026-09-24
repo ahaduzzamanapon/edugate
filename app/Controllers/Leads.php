@@ -128,6 +128,17 @@ class Leads extends Security_Controller {
         $team_members_dropdown = $this->Users_model->get_id_and_text_dropdown(array("first_name", "last_name"), array("deleted" => 0, "status" => "active", "user_type" => "staff"));
         $view_data['team_members_dropdown'] = json_encode($team_members_dropdown);
 
+        //get countries dropdown for preferred country
+        $view_data['countries_dropdown'] = $this->Lead_countries_model->get_country_dropdown_list();
+
+        //populate email from primary contact if not in clients table
+        if ($lead_id && empty($view_data['model_info']->email)) {
+            $primary_contact = $this->Clients_model->get_primary_contact($lead_id);
+            if ($primary_contact && $primary_contact->email) {
+                $view_data['model_info']->email = $primary_contact->email;
+            }
+        }
+
         //get custom fields
         $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("leads", $lead_id, $this->login_user->is_admin, $this->login_user->user_type)->getResult();
 
@@ -193,32 +204,34 @@ class Leads extends Security_Controller {
             }
         }
 
+        $email = trim($this->request->getPost('email') ? $this->request->getPost('email') : "");
+
         $data = array(
             "company_name" => $this->request->getPost('company_name'),
-            "type" => $this->request->getPost('account_type'),
-            "address" => $this->request->getPost('address'),
-            "city" => $this->request->getPost('city'),
-            "state" => $this->request->getPost('state'),
-            "zip" => $this->request->getPost('zip'),
-            "country" => $this->request->getPost('country'),
+            "type" => $this->request->getPost('account_type') ? $this->request->getPost('account_type') : "person",
             "phone" => $this->request->getPost('phone'),
-            "website" => $this->request->getPost('website'),
-            "vat_number" => $this->request->getPost('vat_number'),
-            "gst_number" => $this->request->getPost('gst_number'),
-            "currency_symbol" => $this->request->getPost('currency_symbol') ? $this->request->getPost('currency_symbol') : "",
-            "currency" => $this->request->getPost('currency') ? $this->request->getPost('currency') : "",
+            "email" => $email,
             "is_lead" => 1,
-            "lead_status_id" => $new_status_id,
-            "lead_source_id" => $this->request->getPost('lead_source_id'),
-            "owner_id" => $this->request->getPost('owner_id') ? $this->request->getPost('owner_id') : $this->login_user->id,
-            "managers" => $this->request->getPost('managers'),
-            "labels" => $labels,
             "preferred_country" => $this->request->getPost('preferred_country'),
             "ielts_status" => $this->request->getPost('ielts_status'),
             "ielts_score" => $this->request->getPost('ielts_score'),
             "qualification" => $this->request->getPost('qualification'),
             "preferred_intake" => $this->request->getPost('preferred_intake')
         );
+
+        if ($new_status_id) {
+            $data["lead_status_id"] = $new_status_id;
+        }
+
+        if ($this->request->getPost('owner_id')) {
+            $data["owner_id"] = $this->request->getPost('owner_id');
+        } else if (!$client_id) {
+            $data["owner_id"] = $this->login_user->id;
+        }
+
+        if ($this->request->getPost('lead_source_id')) {
+            $data["lead_source_id"] = $this->request->getPost('lead_source_id');
+        }
 
         if (!$client_id) {
             $data["created_date"] = get_current_utc_time();
@@ -229,11 +242,41 @@ class Leads extends Security_Controller {
             }
         }
 
-
         $data = clean_data($data);
 
         $save_id = $this->Clients_model->ci_save($data, $client_id);
         if ($save_id) {
+            // sync primary contact in users table
+            $name = $data["company_name"];
+            $name_parts = explode(" ", $name, 2);
+            $first_name = $name_parts[0];
+            $last_name = isset($name_parts[1]) ? $name_parts[1] : '';
+
+            $primary_contact = $this->Clients_model->get_primary_contact($save_id);
+            if ($primary_contact && $primary_contact->id) {
+                $contact_data = array(
+                    "first_name" => $first_name,
+                    "last_name" => $last_name,
+                    "phone" => $data["phone"]
+                );
+                if ($email) {
+                    $contact_data["email"] = $email;
+                }
+                $this->Users_model->ci_save($contact_data, $primary_contact->id);
+            } else if ($email || $data["phone"]) {
+                $contact_data = array(
+                    "first_name" => $first_name,
+                    "last_name" => $last_name,
+                    "client_id" => $save_id,
+                    "user_type" => "lead",
+                    "email" => $email ? $email : "",
+                    "phone" => $data["phone"] ? $data["phone"] : "",
+                    "created_at" => get_current_utc_time(),
+                    "is_primary_contact" => 1
+                );
+                $this->Users_model->ci_save($contact_data);
+            }
+
             save_custom_fields("leads", $save_id, $this->login_user->is_admin, $this->login_user->user_type);
 
             if (!$client_id) {
@@ -340,11 +383,12 @@ class Leads extends Security_Controller {
             $owner = get_team_member_profile_link($data->owner_id, $owner_user);
         }
 
-        $lead_labels = make_labels_view_data($data->labels_list, true);
-
         $phone = $data->phone ? ($data->phone . "<br/><span class='hide'>, </span>")  : "";
         if ($data->primary_contact_phone && $data->primary_contact_phone != $data->phone) {
             $phone .= $data->primary_contact_phone;
+        }
+        if ($data->email) {
+            $phone .= ($phone ? "<br/>" : "") . "<span class='text-muted' style='font-size:12px;'><i data-feather='mail' class='icon-12 mr5'></i>" . $data->email . "</span>";
         }
         $phone = $phone ?: "-";
 
@@ -366,7 +410,6 @@ class Leads extends Security_Controller {
             $data->primary_contact ? $primary_contact : "",
             $phone,
             $owner,
-            $lead_labels,
             $data->created_date,
             format_to_datetime($data->created_date)
         );

@@ -260,6 +260,7 @@ class Facebook_lead_webhook extends Controller {
             "company_name" => $name,
             "type" => "person",
             "phone" => $phone,
+            "email" => $email,
             "is_lead" => 1,
             "lead_status_id" => $status_id,
             "lead_source_id" => $source_id,

@@ -75,26 +75,7 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <div class="row">
-                <div class="col-md-1">
-                    <?php
-                    echo form_checkbox("", "1", false, "class=' batch-update-checkbox form-check-input'");
-                    ?>
-                </div>
-                <label for="lead_labels" class=" col-md-2 text-off"><?php echo app_lang('labels'); ?></label>
-                <div class=" col-md-9">
-                    <?php
-                    echo form_input(array(
-                        "id" => "lead_labels",
-                        "name" => "labels",
-                        "class" => "form-control",
-                        "placeholder" => app_lang('labels')
-                    ));
-                    ?>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 
@@ -166,10 +147,7 @@
             data: <?php echo json_encode($sources_dropdown); ?>
         });
 
-        $("#lead_labels").select2({
-            multiple: true,
-            data: <?php echo json_encode($label_suggestions); ?>
-        });
+
 
         //toggle checkbox and label
         $(".form-group .col-md-9 input, select").on('change', function() {
