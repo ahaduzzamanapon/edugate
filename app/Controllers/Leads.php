@@ -1865,8 +1865,10 @@ class Leads extends Security_Controller {
     function converted_to_client_report() {
         $this->_validate_leads_report_access();
 
+        $view_data["lead_statuses"] = $this->Lead_status_model->get_details()->getResult();
         $view_data['sources_dropdown'] = json_encode($this->_get_sources_dropdown());
         $view_data['owners_dropdown'] = json_encode($this->_get_owners_dropdown("filter"));
+        $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
 
         return $this->template->rander("leads/reports/converted_to_client", $view_data);
     }
@@ -2018,7 +2020,6 @@ class Leads extends Security_Controller {
             $total = get_array_value($status_total_array, $status->id);
             $row_data[] = $total ? $total : 0;
         }
-        $row_data[] = $data->converted_to_client ? $data->converted_to_client : 0;
 
         return $row_data;
     }

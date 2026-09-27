@@ -92,10 +92,6 @@ if (!function_exists('get_reports_topbar')) {
             $reports_menu[] = array("name" => "timesheets", "url" => "projects/all_timesheets", "class" => "clock", "single_button" => true);
         }
 
-        if ($ci->login_user->is_admin || get_array_value($permissions, "can_manage_all_projects") == "1") {
-            $reports_menu[] = array("name" => "projects", "url" => "projects/team_members_summary", "class" => "command", "single_button" => true);
-        }
-
         if (get_setting("module_lead") == "1" && ($ci->login_user->is_admin || $access_lead == "all")) {
             $reports_menu[] = array("name" => "leads", "url" => "leads/converted_to_client_report", "class" => "layers", "single_button" => true);
         }

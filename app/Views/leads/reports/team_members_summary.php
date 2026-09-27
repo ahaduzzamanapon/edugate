@@ -8,7 +8,6 @@ $columns = array(array("title" => app_lang("owner"), "class" => "all"));
 foreach ($lead_statuses as $status) {
     $columns[] = array("title" => $status->title, "class" => "text-right");
 }
-$columns[] = array("title" => app_lang("converted_to_client"), "class" => "text-right all");
 ?>
 
 <script type="text/javascript">
