@@ -3376,14 +3376,26 @@ if (!function_exists('can_access_setting')) {
 
         $check_name = isset($aliases[$setting_name]) ? $aliases[$setting_name] : $setting_name;
 
-        // If checking 'general' (the main general tab container)
+        $general_sub_tabs = array("general_settings", "ui_options", "top_menu", "footer", "pwa");
+
+        // If checking 'general' (the main general tab container / left menu item)
         if ($check_name === "general") {
-            if (!empty($settings_permissions["general"])) {
-                return true;
-            }
-            $general_sub_tabs = array("general_settings", "ui_options", "top_menu", "footer", "pwa");
             foreach ($general_sub_tabs as $sub_tab) {
                 if (!empty($settings_permissions[$sub_tab])) {
+                    return true;
+                }
+            }
+            if (!empty($settings_permissions["general"])) {
+                // If any sub-tab exists in permissions array, ensure at least one is enabled
+                $has_any_sub_tab_key = false;
+                foreach ($general_sub_tabs as $sub_tab) {
+                    if (array_key_exists($sub_tab, $settings_permissions)) {
+                        $has_any_sub_tab_key = true;
+                        break;
+                    }
+                }
+                if (!$has_any_sub_tab_key) {
+                    // Legacy permission format: grant access if general was permitted
                     return true;
                 }
             }
@@ -3391,10 +3403,24 @@ if (!function_exists('can_access_setting')) {
         }
 
         // If checking a sub-tab of general
-        if (in_array($check_name, array("general_settings", "ui_options", "top_menu", "footer", "pwa"))) {
-            if (!empty($settings_permissions[$check_name]) || !empty($settings_permissions["general"])) {
+        if (in_array($check_name, $general_sub_tabs)) {
+            if (!empty($settings_permissions[$check_name])) {
                 return true;
             }
+
+            // Fallback for legacy permissions where sub-tabs did not exist and only 'general' was stored
+            $has_any_sub_tab_key = false;
+            foreach ($general_sub_tabs as $sub_tab) {
+                if (array_key_exists($sub_tab, $settings_permissions)) {
+                    $has_any_sub_tab_key = true;
+                    break;
+                }
+            }
+
+            if (!$has_any_sub_tab_key && !empty($settings_permissions["general"])) {
+                return true;
+            }
+
             return false;
         }
 

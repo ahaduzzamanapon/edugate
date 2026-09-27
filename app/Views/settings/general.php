@@ -257,62 +257,63 @@
             $('[data-bs-toggle="ajax-tab"] li a').first().trigger("click");
         }
 
-        $("#general-settings-form").appForm({
-            isModal: false,
-            beforeAjaxSubmit: function(data) {
-                $.each(data, function(index, obj) {
-                    if (obj.name === "site_logo" || obj.name === "favicon") {
-                        var image = replaceAll(":", "~", data[index]["value"]);
-                        data[index]["value"] = image;
+        if ($("#general-settings-form").length) {
+            $("#general-settings-form").appForm({
+                isModal: false,
+                beforeAjaxSubmit: function(data) {
+                    $.each(data, function(index, obj) {
+                        if (obj.name === "site_logo" || obj.name === "favicon") {
+                            var image = replaceAll(":", "~", data[index]["value"]);
+                            data[index]["value"] = image;
+                        }
+                    });
+                },
+                onSuccess: function(result) {
+                    appAlert.success(result.message, {
+                        duration: 10000
+                    });
+                    if ($("#site_logo").val() || $("#favicon").val() || result.reload_page) {
+                        location.reload();
                     }
-                });
-            },
-            onSuccess: function(result) {
-                appAlert.success(result.message, {
-                    duration: 10000
-                });
-                if ($("#site_logo").val() || $("#favicon").val() || result.reload_page) {
-                    location.reload();
                 }
-            }
-        });
+            });
 
-        AppHelper.code = "<?php echo get_setting('item_purchase_code'); ?>";
+            AppHelper.code = "<?php echo get_setting('item_purchase_code'); ?>";
 
-        var uploadUrl = "<?php echo get_uri("uploader/upload_file"); ?>";
-        var validationUrl = "<?php echo get_uri("uploader/validate_file"); ?>";
+            var uploadUrl = "<?php echo get_uri("uploader/upload_file"); ?>";
+            var validationUrl = "<?php echo get_uri("uploader/validate_file"); ?>";
 
-        var dropzone = attachDropzoneWithForm("#general-settings-form", uploadUrl, validationUrl, {
-            maxFiles: 1
-        });
+            var dropzone = attachDropzoneWithForm("#general-settings-form", uploadUrl, validationUrl, {
+                maxFiles: 1
+            });
 
+            $(".cropbox-upload").change(function() {
+                showCropBox(this);
+            });
 
-        $(".cropbox-upload").change(function() {
-            showCropBox(this);
-        });
-
-        var existingColor = "<?php echo get_setting("default_theme_color"); ?>";
-        if (existingColor === "F2F2F2") {
-            $("#settings-color-plate span:first-child").addClass("active");
-        } else {
-            $("#settings-color-plate").find("[data-color='" + existingColor + "']").addClass("active");
-        }
-
-        $("#settings-color-plate span").click(function() {
-            $("#settings-color-plate span").removeClass("active");
-            $(this).addClass("active");
-
-            var color = $(this).attr("data-color");
-            if (color) {
-                $("#default-theme-color").val($(this).attr("data-color"));
+            var existingColor = "<?php echo get_setting("default_theme_color"); ?>";
+            if (existingColor === "F2F2F2") {
+                $("#settings-color-plate span:first-child").addClass("active");
             } else {
-                $("#default-theme-color").val("F2F2F2");
+                $("#settings-color-plate").find("[data-color='" + existingColor + "']").addClass("active");
             }
-        });
 
-        // any periods (.) will automatically be replaced by commas (,)
-        $("#accepted_file_formats").on("input", function() {
-            $(this).val($(this).val().replace(/\./g, ','));
-        });
+            $("#settings-color-plate span").click(function() {
+                $("#settings-color-plate span").removeClass("active");
+                $(this).addClass("active");
+
+                var color = $(this).attr("data-color");
+                if (color) {
+                    $("#default-theme-color").val($(this).attr("data-color"));
+                } else {
+                    $("#default-theme-color").val("F2F2F2");
+                }
+            });
+
+            // any periods (.) will automatically be replaced by commas (,)
+            $("#accepted_file_formats").on("input", function() {
+                $(this).val($(this).val().replace(/\./g, ','));
+            });
+        }
     });
 </script>

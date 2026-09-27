@@ -241,13 +241,21 @@
                                                                         </label>
                                                                     </div>
 
-                                                                    <?php if ($has_sub_items) { ?>
+                                                                    <?php if ($has_sub_items) { 
+                                                                        $has_any_sub_saved = false;
+                                                                        foreach ($item["sub_items"] as $sub_check) {
+                                                                            if (isset($settings_permissions[$sub_check["name"]])) {
+                                                                                $has_any_sub_saved = true;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    ?>
                                                                         <div class="ms-4 mt-2 p-2 border-start bg-light rounded" id="sub_items_<?php echo $item_name; ?>">
                                                                             <div class="text-off small mb-2 fw-semibold">Sub-tabs:</div>
                                                                             <div class="row">
                                                                                 <?php foreach ($item["sub_items"] as $sub_item) { 
                                                                                     $sub_name = $sub_item["name"];
-                                                                                    $is_sub_checked = !empty($settings_permissions[$sub_name]);
+                                                                                    $is_sub_checked = !empty($settings_permissions[$sub_name]) || (!$has_any_sub_saved && !empty($settings_permissions[$item_name]));
                                                                                 ?>
                                                                                     <div class="col-md-4 col-sm-6 mb-1">
                                                                                         <div class="form-check d-flex align-items-center">
