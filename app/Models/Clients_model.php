@@ -559,6 +559,22 @@ class Clients_model extends Crud_model {
             $where .= " AND ($clients_table.owner_id=$show_own_leads_only_user_id OR FIND_IN_SET('$show_own_leads_only_user_id', $clients_table.managers))";
         }
 
+        $lead_status_id = $this->_get_clean_value($options, "lead_status_id");
+        if ($lead_status_id) {
+            if (is_array($lead_status_id)) {
+                $status_ids = implode(",", array_map('intval', $lead_status_id));
+                $where .= " AND $clients_table.lead_status_id IN ($status_ids)";
+            } else {
+                $where .= " AND $clients_table.lead_status_id=" . (int)$lead_status_id;
+            }
+        }
+
+        $allowed_status_ids = $this->_get_clean_value($options, "allowed_status_ids");
+        if ($allowed_status_ids && is_array($allowed_status_ids)) {
+            $allowed_ids = implode(",", array_map('intval', $allowed_status_ids));
+            $where .= " AND $clients_table.lead_status_id IN ($allowed_ids)";
+        }
+
         $sql = "SELECT COUNT($clients_table.id) AS total
         FROM $clients_table 
         WHERE $clients_table.deleted=0 AND $clients_table.is_lead=1 $where";

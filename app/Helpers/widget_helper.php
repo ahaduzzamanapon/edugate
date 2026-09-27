@@ -1748,18 +1748,200 @@ if (!function_exists('leads_overview_widget')) {
         $ci = new Security_Controller(false);
         $permissions = $ci->login_user->permissions;
 
+        $options = array();
         if ($ci->login_user->is_admin || get_array_value($permissions, "lead") == "all") {
             $options = array();
         } else if (get_array_value($permissions, "lead") == "own") {
             $options["show_own_leads_only_user_id"] = $ci->login_user->id;
         }
 
+        $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+        $allowed_status_ids = $lead_role_permissions_model->get_allowed_view_status_ids($ci->login_user);
+
         $view_data["lead_statuses"] = $ci->Clients_model->get_lead_statistics($options)->lead_statuses;
         $view_data["total_leads"] = $ci->Clients_model->count_total_leads($options);
-        $view_data["converted_to_client"] = $ci->Clients_model->get_lead_statistics($options)->converted_to_client;
+
+        if ($allowed_status_ids !== null) {
+            $filtered_statuses = array();
+            $status_total = 0;
+            foreach ($view_data["lead_statuses"] as $status_item) {
+                if (in_array((int)$status_item->lead_status_id, $allowed_status_ids)) {
+                    $filtered_statuses[] = $status_item;
+                    $status_total += (int)$status_item->total;
+                }
+            }
+            $view_data["lead_statuses"] = $filtered_statuses;
+            $view_data["total_leads"] = $status_total;
+        }
 
         $template = new Template();
         return $template->view("leads/leads_overview_widget", $view_data);
+    }
+}
+
+/**
+ * get hot leads widget
+ * @return html
+ */
+if (!function_exists('hot_leads_widget')) {
+
+    function hot_leads_widget($return_as_data = false, $show_own_leads_only_user_id = "") {
+        $Clients_model = model("App\Models\Clients_model");
+        $db = \Config\Database::connect();
+        $row = $db->query("SELECT id, title FROM " . $db->prefixTable('lead_status') . " WHERE deleted=0 AND title LIKE '%hot%' ORDER BY id ASC LIMIT 1")->getRow();
+        $status_id = ($row && $row->id) ? (int)$row->id : 16;
+        $title = ($row && $row->title) ? $row->title : "Hot Leads";
+
+        $total = $Clients_model->count_total_leads(array("show_own_leads_only_user_id" => $show_own_leads_only_user_id, "lead_status_id" => $status_id));
+
+        $view_data = array(
+            "total" => $total,
+            "title" => $title,
+            "icon" => "zap",
+            "bg_class" => "bg-coral",
+            "url" => "leads/index/" . $status_id
+        );
+
+        $template = new Template();
+        return $template->view('leads/lead_status_card_widget', $view_data, $return_as_data);
+    }
+}
+
+/**
+ * get followup leads widget
+ * @return html
+ */
+if (!function_exists('followup_leads_widget')) {
+
+    function followup_leads_widget($return_as_data = false, $show_own_leads_only_user_id = "") {
+        $Clients_model = model("App\Models\Clients_model");
+        $db = \Config\Database::connect();
+        $row = $db->query("SELECT id, title FROM " . $db->prefixTable('lead_status') . " WHERE deleted=0 AND title LIKE '%follow%' ORDER BY id ASC LIMIT 1")->getRow();
+        $status_id = ($row && $row->id) ? (int)$row->id : 4;
+        $title = ($row && $row->title) ? $row->title : "Follow-up Ongoing";
+
+        $total = $Clients_model->count_total_leads(array("show_own_leads_only_user_id" => $show_own_leads_only_user_id, "lead_status_id" => $status_id));
+
+        $view_data = array(
+            "total" => $total,
+            "title" => $title,
+            "icon" => "phone-call",
+            "bg_class" => "bg-info",
+            "url" => "leads/index/" . $status_id
+        );
+
+        $template = new Template();
+        return $template->view('leads/lead_status_card_widget', $view_data, $return_as_data);
+    }
+}
+
+/**
+ * get admitted / won leads widget
+ * @return html
+ */
+if (!function_exists('won_leads_widget')) {
+
+    function won_leads_widget($return_as_data = false, $show_own_leads_only_user_id = "") {
+        $Clients_model = model("App\Models\Clients_model");
+        $db = \Config\Database::connect();
+        $rows = $db->query("SELECT id, title FROM " . $db->prefixTable('lead_status') . " WHERE deleted=0 AND (title LIKE '%admit%' OR title LIKE '%won%') ORDER BY id ASC")->getResult();
+        $status_ids = array();
+        $title = "Admitted / Won";
+        foreach ($rows as $r) {
+            $status_ids[] = (int)$r->id;
+        }
+        if (empty($status_ids)) {
+            $status_ids = array(24, 9);
+        }
+
+        $total = $Clients_model->count_total_leads(array("show_own_leads_only_user_id" => $show_own_leads_only_user_id, "lead_status_id" => $status_ids));
+
+        $view_data = array(
+            "total" => $total,
+            "title" => $title,
+            "icon" => "check-circle",
+            "bg_class" => "bg-success",
+            "url" => "leads/index/" . reset($status_ids)
+        );
+
+        $template = new Template();
+        return $template->view('leads/lead_status_card_widget', $view_data, $return_as_data);
+    }
+}
+
+/**
+ * get recent leads table widget
+ * @return html
+ */
+if (!function_exists('recent_leads_widget')) {
+
+    function recent_leads_widget() {
+        $ci = new Security_Controller(false);
+        $Custom_fields_model = model("App\Models\Custom_fields_model");
+        $Lead_status_model = model("App\Models\Lead_status_model");
+        $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+
+        $view_data["custom_field_headers"] = $Custom_fields_model->get_custom_field_headers_for_table("leads", $ci->login_user->is_admin, $ci->login_user->user_type);
+
+        $allowed_status_ids = $lead_role_permissions_model->get_allowed_view_status_ids($ci->login_user);
+        $all_statuses = $Lead_status_model->get_details()->getResult();
+
+        if ($allowed_status_ids !== null) {
+            $filtered_statuses = array();
+            foreach ($all_statuses as $st) {
+                if (in_array((int)$st->id, $allowed_status_ids)) {
+                    $filtered_statuses[] = $st;
+                }
+            }
+            $view_data['lead_statuses'] = $filtered_statuses;
+        } else {
+            $view_data['lead_statuses'] = $all_statuses;
+        }
+
+        // Prepare transition map for status update
+        $status_transition_map = array();
+        $is_admin = $ci->login_user->is_admin ? true : false;
+        $statuses_by_id = array();
+        foreach ($all_statuses as $st) {
+            $statuses_by_id[(int)$st->id] = $st;
+        }
+
+        foreach ($all_statuses as $st) {
+            $from_id = (int)$st->id;
+            $options_for_status = array();
+
+            if ($is_admin) {
+                foreach ($all_statuses as $target_st) {
+                    $options_for_status[] = array("id" => (int)$target_st->id, "text" => $target_st->title);
+                }
+            } else {
+                $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($ci->login_user, $from_id);
+
+                if ($allowed_move_ids === null) {
+                    $target_pool = ($allowed_status_ids !== null) ? $filtered_statuses : $all_statuses;
+                    foreach ($target_pool as $target_st) {
+                        $options_for_status[] = array("id" => (int)$target_st->id, "text" => $target_st->title);
+                    }
+                } else {
+                    if (isset($statuses_by_id[$from_id])) {
+                        $options_for_status[] = array("id" => $from_id, "text" => $statuses_by_id[$from_id]->title);
+                    }
+                    foreach ($allowed_move_ids as $to_id) {
+                        if ((int)$to_id !== $from_id && isset($statuses_by_id[(int)$to_id])) {
+                            $options_for_status[] = array("id" => (int)$to_id, "text" => $statuses_by_id[(int)$to_id]->title);
+                        }
+                    }
+                }
+            }
+
+            $status_transition_map[$from_id] = $options_for_status;
+        }
+
+        $view_data['status_transition_map'] = $status_transition_map;
+        $view_data['login_user'] = $ci->login_user;
+
+        $template = new Template();
+        return $template->view("leads/recent_leads_widget", $view_data);
     }
 }
 

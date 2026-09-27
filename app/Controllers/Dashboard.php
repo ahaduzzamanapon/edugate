@@ -202,7 +202,11 @@ class Dashboard extends Security_Controller {
 
         if ($show_lead && ($this->login_user->is_admin || $access_leads->access_type)) {
             $widget["total_leads"] = true;
+            $widget["hot_leads"] = true;
+            $widget["followup_leads"] = true;
+            $widget["won_leads"] = true;
             $widget["leads_overview"] = true;
+            $widget["recent_leads"] = true;
         }
 
         if ($show_estimate && ($this->login_user->is_admin || $access_estiamtes->access_type)) {
@@ -443,22 +447,68 @@ class Dashboard extends Security_Controller {
     private function _get_admin_and_team_dashboard_widgets() {
 
         $widgets = $this->_check_widgets_permissions();
-        $first_row = $this->_get_first_row_of_admin_and_team_dashboard($widgets);
 
-        $row_columns = $this->_get_second_and_third_row_of_admin_and_team_dashboard_widget_columns($widgets);
-        $second_row = $this->_get_second_row_of_admin_and_team_dashboard($row_columns);
-        $third_row = $this->_get_third_row_of_admin_and_team_dashboard($row_columns);
+        // Row 1: Lead KPI status cards (3-3-3-3)
+        $row_1_columns = array();
+        if (get_array_value($widgets, "total_leads")) {
+            $row_1_columns[] = array("total_leads");
+        }
+        if (get_array_value($widgets, "hot_leads")) {
+            $row_1_columns[] = array("hot_leads");
+        }
+        if (get_array_value($widgets, "followup_leads")) {
+            $row_1_columns[] = array("followup_leads");
+        }
+        if (get_array_value($widgets, "won_leads")) {
+            $row_1_columns[] = array("won_leads");
+        }
 
-        $fourth_row = $this->_get_fourth_row_of_admin_and_team_dashboard($widgets);
-        $fifth_row = $this->_get_fifth_row_of_admin_and_team_dashboard($widgets);
+        $row1 = array();
+        $row1["columns"] = $row_1_columns;
+        $count = count($row_1_columns);
+        if ($count == 4) {
+            $row1["ratio"] = "3-3-3-3";
+        } else if ($count == 3) {
+            $row1["ratio"] = "4-4-4";
+        } else if ($count == 2) {
+            $row1["ratio"] = "6-6";
+        } else if ($count == 1) {
+            $row1["ratio"] = "12";
+        }
 
-        $row_widgets = array(
-            $first_row,
-            $second_row,
-            $third_row,
-            $fourth_row,
-            $fifth_row
-        );
+        // Row 2: Leads Overview (8) + Sticky Note (4)
+        $row2 = array();
+        $has_overview = get_array_value($widgets, "leads_overview");
+        $has_sticky = get_array_value($widgets, "sticky_note");
+
+        if ($has_overview && $has_sticky) {
+            $row2["columns"] = array(array("leads_overview"), array("sticky_note"));
+            $row2["ratio"] = "8-4";
+        } else if ($has_overview) {
+            $row2["columns"] = array(array("leads_overview"));
+            $row2["ratio"] = "12";
+        } else if ($has_sticky) {
+            $row2["columns"] = array(array("sticky_note"));
+            $row2["ratio"] = "12";
+        }
+
+        // Row 3: Recent Leads table (12)
+        $row3 = array();
+        if (get_array_value($widgets, "recent_leads")) {
+            $row3["columns"] = array(array("recent_leads"));
+            $row3["ratio"] = "12";
+        }
+
+        $row_widgets = array();
+        if (!empty($row1["columns"])) {
+            $row_widgets[] = $row1;
+        }
+        if (!empty($row2["columns"])) {
+            $row_widgets[] = $row2;
+        }
+        if (!empty($row3["columns"])) {
+            $row_widgets[] = $row3;
+        }
 
         return $row_widgets;
     }
@@ -864,6 +914,10 @@ class Dashboard extends Security_Controller {
                 "next_reminder",
                 "leads_overview",
                 "my_tasks_overview",
+                "hot_leads",
+                "followup_leads",
+                "won_leads",
+                "recent_leads",
             );
         } else {
             $default_widgets_array = array(
@@ -1158,6 +1212,17 @@ class Dashboard extends Security_Controller {
             } else if ($widget == "total_leads") {
                 $show_own_leads_only_user_id = $this->show_own_leads_only_user_id();
                 return total_leads_widget(true, $show_own_leads_only_user_id);
+            } else if ($widget == "hot_leads") {
+                $show_own_leads_only_user_id = $this->show_own_leads_only_user_id();
+                return hot_leads_widget(true, $show_own_leads_only_user_id);
+            } else if ($widget == "followup_leads") {
+                $show_own_leads_only_user_id = $this->show_own_leads_only_user_id();
+                return followup_leads_widget(true, $show_own_leads_only_user_id);
+            } else if ($widget == "won_leads") {
+                $show_own_leads_only_user_id = $this->show_own_leads_only_user_id();
+                return won_leads_widget(true, $show_own_leads_only_user_id);
+            } else if ($widget == "recent_leads") {
+                return recent_leads_widget();
             } else if ($widget == "projects_overview") {
                 return projects_overview_widget();
             } else if ($widget == "estimate_sent_statistics") {

@@ -23,23 +23,7 @@
 
                 </li>
 
-                <?php
-                //get the array of hidden topbar menus
-                $hidden_topbar_menus = explode(",", get_setting("user_" . $user . "_hidden_topbar_menus"));
 
-                if (!in_array("to_do", $hidden_topbar_menus)) {
-                    echo view("todo/topbar_icon");
-                }
-                if (!in_array("favorite_projects", $hidden_topbar_menus) && !(get_setting("disable_access_favorite_project_option_for_clients") && $login_user->user_type == "client") && !($login_user->user_type == "staff" && get_array_value($login_user->permissions, "do_not_show_projects"))) {
-                    echo view("projects/star/topbar_icon");
-                }
-                if (!in_array("favorite_clients", $hidden_topbar_menus)) {
-                    echo view("clients/star/topbar_icon");
-                }
-                if (!in_array("dashboard_customization", $hidden_topbar_menus) && (get_setting("disable_new_dashboard_icon") != 1)) {
-                    echo view("dashboards/list/topbar_icon");
-                }
-                ?>
 
                 <?php
                 if (has_my_open_timers()) {
@@ -55,51 +39,7 @@
             <div class="d-flex w-auto">
                 <ul class="navbar-nav">
 
-                    <?php
-                    if ($login_user->user_type == "staff") { ?>
-                        <li id="topbar-search-btn" class="nav-item hidden-sm" title="<?php echo app_lang('search') . ' (/)'; ?>">
-                            <?php echo modal_anchor(get_uri("search/search_modal_form"), "<i data-feather='search' class='icon'></i>", array("class" => "nav-link", "data-modal-title" => app_lang('search') . ' (/)', "data-post-hide-header" => true, "data-modal-close" => "1", "id" => "global-search-btn")); ?>
-                        </li>
-                    <?php } ?>
 
-                    <?php
-                    if (!in_array("quick_add", $hidden_topbar_menus)) {
-                        echo view("settings/topbar_parts/quick_add");
-                    }
-                    ?>
-
-                    <?php if (!in_array("language", $hidden_topbar_menus) && (($login_user->user_type == "staff" && !get_setting("disable_language_selector_for_team_members")) || ($login_user->user_type == "client" && !get_setting("disable_language_selector_for_clients")))) { ?>
-
-                        <li id="topbar-language-dropdown" class="nav-item dropdown hidden-xs">
-                            <?php echo js_anchor("<i data-feather='globe' class='icon'></i>", array("id" => "personal-language-icon", "class" => "nav-link dropdown-toggle p20", "data-bs-toggle" => "dropdown")); ?>
-
-                            <ul class="dropdown-menu dropdown-menu-end language-dropdown">
-                                <li>
-                                    <?php
-                                    $user_language = $login_user->language;
-                                    $system_language = get_setting("language");
-
-                                    foreach (get_language_list() as $language) {
-                                        $language_status = "";
-                                        $language_text = $language;
-
-                                        if ($user_language == strtolower($language) || (!$user_language && $system_language == strtolower($language))) {
-                                            $language_status = "<span class='float-end checkbox-checked m0'></span>";
-                                            $language_text = "<strong>" . $language . "</strong>";
-                                        }
-
-                                        if ($login_user->user_type == "staff") {
-                                            echo ajax_anchor(get_uri("team_members/save_personal_language/$language"), $language_text . $language_status, array("class" => "dropdown-item clearfix", "data-reload-on-success" => "1"));
-                                        } else {
-                                            echo ajax_anchor(get_uri("clients/save_personal_language/$language"), $language_text . $language_status, array("class" => "dropdown-item clearfix", "data-reload-on-success" => "1"));
-                                        }
-                                    }
-                                    ?>
-                                </li>
-                            </ul>
-                        </li>
-
-                    <?php } ?>
 
                     <?php if (can_access_reminders_module()) { ?>
                         <li class="nav-item dropdown">

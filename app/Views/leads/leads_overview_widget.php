@@ -22,12 +22,9 @@
                 ?>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div><?php echo app_lang("total_leads") . ": "; ?> <span class="strong"><?php echo $total_leads; ?></span></div>
-            </div>
-            <div class="col-md-6">
-                <div><?php echo app_lang("converted_to_client") . ": "; ?> <span class="strong"><?php echo $converted_to_client; ?></span></div>
+        <div class="row pt-2 border-top mt-2">
+            <div class="col-md-12 text-center">
+                <div><span class="text-off"><?php echo app_lang("total_leads") . ": "; ?></span><span class="strong"><?php echo $total_leads; ?></span></div>
             </div>
         </div>
     </div>
