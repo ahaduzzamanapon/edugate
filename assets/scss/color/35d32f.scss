@@ -1,7 +1,7 @@
 $white: #FFF;
-$theme-color: #83c340;
-$theme-color-focus: #75ae37;
-$theme-color-dark: #689b31;
+$theme-color: #35d32f;
+$theme-color-focus: #2bb226;
+$theme-color-dark: #20851c;
 
 .sidebar-scroll,
 #timeline .post-content .post-date span {
@@ -192,15 +192,15 @@ td {
 
 .sidebar-scroll {
     &::-webkit-scrollbar-thumb {
-        background: rgba(117, 174, 55, 0.4);
+        background: rgba(43, 178, 38, 0.4);
     }
 
     &::-webkit-scrollbar-thumb:hover {
-        background: rgba(117, 174, 55, 0.6);
+        background: rgba(43, 178, 38, 0.6);
     }
 
     &::-webkit-scrollbar-thumb:active {
-        background: rgba(117, 174, 55, 0.6);
+        background: rgba(43, 178, 38, 0.6);
     }
 }
 
