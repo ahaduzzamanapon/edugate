@@ -1296,6 +1296,36 @@
 
                 <li>
                     <span data-feather="key" class="icon-14 ml-20"></span>
+                    <h5><?php echo app_lang("can_access_reports"); ?></h5>
+                    <div>
+                        <?php
+                        if (is_null($can_access_reports)) {
+                            $can_access_reports = "";
+                        }
+                        echo form_radio(array(
+                            "id" => "can_access_reports_no",
+                            "name" => "can_access_reports",
+                            "value" => "",
+                            "class" => "form-check-input",
+                        ), $can_access_reports, ($can_access_reports === "") ? true : false);
+                        ?>
+                        <label for="can_access_reports_no"><?php echo app_lang("no"); ?> </label>
+                    </div>
+                    <div>
+                        <?php
+                        echo form_radio(array(
+                            "id" => "can_access_reports_yes",
+                            "name" => "can_access_reports",
+                            "value" => "1",
+                            "class" => "form-check-input",
+                        ), $can_access_reports, ($can_access_reports === "1" || $can_access_reports === 1 || $can_access_reports === "all") ? true : false);
+                        ?>
+                        <label for="can_access_reports_yes"><?php echo app_lang("yes"); ?></label>
+                    </div>
+                </li>
+
+                <li>
+                    <span data-feather="key" class="icon-14 ml-20"></span>
                     <h5><?php echo app_lang("can_access_admin_dashboard"); ?></h5>
                     <div>
                         <?php

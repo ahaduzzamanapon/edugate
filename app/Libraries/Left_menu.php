@@ -233,23 +233,25 @@ class Left_menu
                 $sidebar_menu["expenses"] = array("name" => "expenses", "url" => "expenses", "class" => "arrow-right-circle");
             }
 
-            $sidebar_menu["reports"] = array(
-                "name" => "reports",
-                "url" => "reports/index",
-                "class" => "pie-chart",
-                "sub_pages" => array(
-                    "invoices/invoices_summary",
-                    "invoices/invoice_details",
-                    "orders/orders_summary",
-                    "projects/all_timesheets",
-                    "expenses/income_vs_expenses",
-                    "invoice_payments/payments_summary",
-                    "expenses/summary",
-                    "projects/team_members_summary",
-                    "leads/converted_to_client_report",
-                    "tickets/tickets_chart_report"
-                )
-            );
+            if ($this->ci->login_user->is_admin || get_array_value($this->ci->login_user->permissions, "can_access_reports")) {
+                $sidebar_menu["reports"] = array(
+                    "name" => "reports",
+                    "url" => "reports/index",
+                    "class" => "pie-chart",
+                    "sub_pages" => array(
+                        "invoices/invoices_summary",
+                        "invoices/invoice_details",
+                        "orders/orders_summary",
+                        "projects/all_timesheets",
+                        "expenses/income_vs_expenses",
+                        "invoice_payments/payments_summary",
+                        "expenses/summary",
+                        "projects/team_members_summary",
+                        "leads/converted_to_client_report",
+                        "tickets/tickets_chart_report"
+                    )
+                );
+            }
 
 
 

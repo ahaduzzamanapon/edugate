@@ -7,6 +7,9 @@ class Reports extends Security_Controller {
     function __construct() {
         parent::__construct();
         $this->access_only_team_members();
+        if (!($this->login_user->is_admin || get_array_value($this->login_user->permissions, "can_access_reports"))) {
+            app_redirect("forbidden");
+        }
     }
 
     public function index() {

@@ -82,6 +82,7 @@ class Roles extends Security_Controller
             $view_data['announcement'] = get_array_value($permissions, "announcement");
             $view_data['custom_reports'] = get_array_value($permissions, "custom_reports");
             $view_data['can_access_admin_dashboard'] = get_array_value($permissions, "can_access_admin_dashboard");
+            $view_data['can_access_reports'] = get_array_value($permissions, "can_access_reports");
             $view_data['help_and_knowledge_base'] = get_array_value($permissions, "help_and_knowledge_base");
 
             $view_data['do_not_show_projects'] = get_array_value($permissions, "do_not_show_projects");
@@ -248,6 +249,7 @@ class Roles extends Security_Controller
         $announcement = $this->request->getPost('announcement_permission');
         $custom_reports = $this->request->getPost('custom_reports_permission');
         $can_access_admin_dashboard = $this->request->getPost('can_access_admin_dashboard');
+        $can_access_reports = $this->request->getPost('can_access_reports');
         $help_and_knowledge_base = $this->request->getPost('help_and_knowledge_base');
 
         $can_view_team_members_contact_info = $this->request->getPost('can_view_team_members_contact_info');
@@ -337,6 +339,7 @@ class Roles extends Security_Controller
             "announcement" => $announcement,
             "custom_reports" => $custom_reports,
             "can_access_admin_dashboard" => $can_access_admin_dashboard,
+            "can_access_reports" => $can_access_reports,
             "help_and_knowledge_base" => $help_and_knowledge_base,
             "do_not_show_projects" => $do_not_show_projects,
             "can_manage_all_projects" => $can_manage_all_projects,
