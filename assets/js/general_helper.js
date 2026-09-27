@@ -1527,7 +1527,7 @@ function getCookie(cname) {
 function setThemeColor() {
     var color = getCookie("theme_color") || AppHelper.settings.defaultThemeColor;
     if (color && color !== "F2F2F2") {
-        var href = AppHelper.assetsDirectory + "css/color/" + color + ".css";
+        var href = AppHelper.assetsDirectory + "css/color/" + color + ".css?v=" + (AppHelper.appVersion || "1.0");
         $("#custom-theme-color").remove();
         $('head').append('<link id="custom-theme-color" class="custom-theme-color" rel="stylesheet" href="' + href + '" type="text/css" />');
     }
