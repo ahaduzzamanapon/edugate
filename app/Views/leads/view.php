@@ -7,7 +7,6 @@
                         <i data-feather="layers" class="icon"></i> <?php echo $lead_info->company_name ?>
                     </h1>
                     <div class="title-button-group mr0">
-                        <?php echo modal_anchor(get_uri("leads/make_client_modal_form/") . $lead_info->id, "<i data-feather='briefcase' class='icon-16'></i> " . app_lang('make_client'), array("class" => "btn btn-primary float-end mr15", "title" => app_lang('make_client'))); ?>
                     </div>
                 </div>
 

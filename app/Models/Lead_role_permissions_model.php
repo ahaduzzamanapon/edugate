@@ -113,6 +113,53 @@ class Lead_role_permissions_model extends Crud_model {
     }
 
     /**
+     * Get list of status IDs allowed when adding/creating a new lead.
+     * Combines statuses the user can view AND statuses the user can transition/move into.
+     * Returns null if admin (all allowed), or array of allowed status IDs.
+     */
+    function get_allowed_create_status_ids($login_user) {
+        if (!$login_user || !isset($login_user->id)) {
+            return array();
+        }
+
+        if ($login_user->is_admin) {
+            return null;
+        }
+
+        $role_id = isset($login_user->role_id) ? (int)$login_user->role_id : 0;
+        if (!$role_id) {
+            return null;
+        }
+
+        $allowed_views = $this->get_allowed_view_status_ids($login_user);
+        $allowed_moves = $this->get_allowed_move_status_ids($login_user, 0);
+
+        // If both are unrestricted, allow all
+        if ($allowed_views === null && $allowed_moves === null) {
+            return null;
+        }
+
+        $combined = array();
+        if (is_array($allowed_views)) {
+            $combined = array_merge($combined, $allowed_views);
+        }
+        if (is_array($allowed_moves)) {
+            $combined = array_merge($combined, $allowed_moves);
+        }
+
+        $combined = array_values(array_unique(array_map('intval', $combined)));
+
+        if (empty($combined)) {
+            if ($allowed_views === null || $allowed_moves === null) {
+                return null;
+            }
+            return array();
+        }
+
+        return $combined;
+    }
+
+    /**
      * Check if a user's role is allowed to transition from one status to another
      */
     function can_transition($login_user, $from_status_id, $to_status_id) {

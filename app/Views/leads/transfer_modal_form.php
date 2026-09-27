@@ -34,12 +34,12 @@
                 </div>
                 <input type="hidden" name="to_status_id" id="transfer_to_status_id" value="<?php echo $target_status->id; ?>" />
             <?php } else { ?>
-                <label for="transfer_to_status_id" class="form-label fw-bold">New Status / নতুন স্ট্যাটাস:</label>
+                <label for="transfer_to_status_id" class="form-label fw-bold">Status / স্ট্যাটাস:</label>
                 <select name="to_status_id" id="transfer_to_status_id" class="form-select select2" required>
-                    <option value="">- Select Status / স্ট্যাটাস নির্বাচন করুন -</option>
                     <?php foreach ($allowed_statuses as $st) { ?>
+                        <?php $is_current = ((int)$st->id === (int)$lead_info->lead_status_id); ?>
                         <option value="<?php echo $st->id; ?>" <?php echo ((int)$st->id === (int)$to_status_id) ? "selected" : ""; ?>>
-                            <?php echo $st->title; ?>
+                            <?php echo $st->title . ($is_current ? " (Current)" : ""); ?>
                         </option>
                     <?php } ?>
                 </select>

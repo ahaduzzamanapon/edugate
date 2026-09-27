@@ -65,8 +65,6 @@
 
         $open_in_new_tab = anchor(get_uri("leads/view/" . $lead->id), "<i data-feather='external-link' class='icon-14'></i>", array("target" => "_blank", "class" => "float-end", "title" => app_lang("details")));
 
-        $make_client = modal_anchor(get_uri("leads/make_client_modal_form/") . $lead->id, "<i data-feather='briefcase' class='icon-14'></i>", array("title" => app_lang('make_client'), "class" => "float-end mr10"));
-
         //custom fields to show in kanban
         $kanban_custom_fields_data = "";
         $kanban_custom_fields = get_custom_variables_data("leads", $lead->id, $login_user->is_admin);
@@ -77,7 +75,7 @@
         }
 
         $item = $exising_items . "<span class='lead-kanban-item kanban-item' data-id='$lead->id' data-sort='$lead->new_sort' data-post-id='$lead->id'>
-                    <div class='selection-pe-none'><span class='avatar'><img src='" . get_avatar($lead->primary_contact_avatar) . "'></span>" . anchor(get_uri("leads/view/" . $lead->id), $lead->company_name) . $open_in_new_tab . $make_client . "</div><div class='clearfix'></div>" .
+                    <div class='selection-pe-none'><span class='avatar'><img src='" . get_avatar($lead->primary_contact_avatar) . "'></span>" . anchor(get_uri("leads/view/" . $lead->id), $lead->company_name) . $open_in_new_tab . "</div><div class='clearfix'></div>" .
                 "<div class='mt15'>" . $source . $owner . "</div>" . $kanban_custom_fields_data . "<div class='clearfix'></div>" .
                 $leads_total_counts . $lead_labels . "</span>";
 

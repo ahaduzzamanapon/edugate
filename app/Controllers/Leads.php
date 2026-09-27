@@ -150,19 +150,11 @@ class Leads extends Security_Controller {
             }
             $view_data['statuses'] = $filtered_statuses;
         } else if (!$lead_id && !$this->login_user->is_admin) {
-            $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($this->login_user, 0);
-            if ($allowed_move_ids !== null) {
+            $allowed_create_ids = $lead_role_permissions_model->get_allowed_create_status_ids($this->login_user);
+            if ($allowed_create_ids !== null) {
                 $filtered_statuses = array();
                 foreach ($all_statuses as $st) {
-                    if (in_array((int)$st->id, $allowed_move_ids)) {
-                        $filtered_statuses[] = $st;
-                    }
-                }
-                $view_data['statuses'] = $filtered_statuses;
-            } else if ($allowed_status_ids !== null) {
-                $filtered_statuses = array();
-                foreach ($all_statuses as $st) {
-                    if (in_array((int)$st->id, $allowed_status_ids)) {
+                    if (in_array((int)$st->id, $allowed_create_ids)) {
                         $filtered_statuses[] = $st;
                     }
                 }
@@ -268,8 +260,8 @@ class Leads extends Security_Controller {
                 }
             }
         } else if (!$this->login_user->is_admin && $new_status_id) {
-            $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($this->login_user, 0);
-            if ($allowed_move_ids !== null && !in_array((int)$new_status_id, $allowed_move_ids)) {
+            $allowed_create_ids = $lead_role_permissions_model->get_allowed_create_status_ids($this->login_user);
+            if ($allowed_create_ids !== null && !in_array((int)$new_status_id, $allowed_create_ids)) {
                 echo json_encode(array("success" => false, 'message' => "You are not authorized to create a lead with this status."));
                 return;
             }
@@ -1318,32 +1310,35 @@ class Leads extends Security_Controller {
         $sort = $this->request->getPost('sort');
         $to_status_id = (int)$this->request->getPost('to_status_id');
 
+        $current_status = $this->Lead_status_model->get_one($lead_info->lead_status_id);
+
         $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
         $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($this->login_user, $lead_info->lead_status_id);
 
         $all_statuses = $this->Lead_status_model->get_details()->getResult();
         $allowed_statuses = array();
+        $has_current = false;
         foreach ($all_statuses as $st) {
-            if ($this->login_user->is_admin || $allowed_move_ids === null || in_array((int)$st->id, $allowed_move_ids)) {
+            $is_current = ((int)$st->id === (int)$lead_info->lead_status_id);
+            if ($is_current) {
+                $has_current = true;
+                $allowed_statuses[] = $st;
+            } else if ($this->login_user->is_admin || $allowed_move_ids === null || in_array((int)$st->id, $allowed_move_ids)) {
                 $allowed_statuses[] = $st;
             }
         }
 
-        // If to_status_id not given, default to first allowed status different from current if available
-        if (!$to_status_id && !empty($allowed_statuses)) {
-            foreach ($allowed_statuses as $st) {
-                if ((int)$st->id !== (int)$lead_info->lead_status_id) {
-                    $to_status_id = (int)$st->id;
-                    break;
-                }
-            }
-            if (!$to_status_id) {
-                $to_status_id = (int)$allowed_statuses[0]->id;
-            }
+        // Ensure current status is always included in allowed_statuses
+        if (!$has_current && $current_status && $current_status->id) {
+            array_unshift($allowed_statuses, $current_status);
         }
 
-        $current_status = $this->Lead_status_model->get_one($lead_info->lead_status_id);
-        $target_status = $to_status_id ? $this->Lead_status_model->get_one($to_status_id) : null;
+        // If to_status_id not given (e.g. opened from table list or details), default to current status!
+        if (!$to_status_id) {
+            $to_status_id = (int)$lead_info->lead_status_id;
+        }
+
+        $target_status = $to_status_id ? $this->Lead_status_model->get_one($to_status_id) : $current_status;
 
         $qualified_staff = $to_status_id ? $lead_role_permissions_model->get_staff_with_access_to_status($to_status_id) : array();
 
@@ -2153,7 +2148,7 @@ class Leads extends Security_Controller {
             if ($allowed_move_ids !== null) {
                 $filtered_lead_statuses = array();
                 foreach ($all_statuses_dropdown as $st_opt) {
-                    $st_id = (int)$st_opt->id;
+                    $st_id = is_object($st_opt) ? (int)$st_opt->id : (int)get_array_value($st_opt, "id");
                     if ($st_id === $current_status_id || in_array($st_id, $allowed_move_ids)) {
                         $filtered_lead_statuses[] = $st_opt;
                     }
