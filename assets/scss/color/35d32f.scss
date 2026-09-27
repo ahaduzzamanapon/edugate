@@ -3,7 +3,26 @@ $theme-color: #35d32f;
 $theme-color-focus: #2bb226;
 $theme-color-dark: #20851c;
 
-.sidebar-scroll,
+/* Sidebar - White background & black text */
+.sidebar {
+    background: #fff !important;
+}
+
+@media (min-width: 991px) {
+    .sidebar {
+        background: #fff !important;
+    }
+}
+
+.sidebar-brand {
+    background-color: #fff !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.0588235294);
+}
+
+.sidebar-scroll {
+    background: #fff !important;
+}
+
 #timeline .post-content .post-date span {
     background: $theme-color;
 }
@@ -11,25 +30,42 @@ $theme-color-dark: #20851c;
 .sidebar-menu {
     li {
         a {
-            color: rgba(255, 255, 255, .8);
+            color: #222 !important;
+
+            svg,
+            i {
+                color: #222 !important;
+                stroke: currentColor;
+            }
 
             &:active,
             &:hover,
             &:focus {
-                color: $white !important;
-                background-color: rgba(255, 255, 255, .1);
+                color: #000 !important;
+                background-color: #f3f4f6;
+
+                svg,
+                i {
+                    color: #000 !important;
+                }
             }
         }
 
         ul {
             li {
                 a {
-                    color: rgba(255, 255, 255, .8);
+                    color: #444 !important;
 
                     &:hover {
-                        color: $white;
-                        background-color: rgba(255, 255, 255, .1);
+                        color: #000 !important;
+                        background-color: #f3f4f6;
                     }
+                }
+
+                &.active a,
+                a.active {
+                    color: $theme-color !important;
+                    font-weight: 600;
                 }
             }
         }
@@ -38,7 +74,24 @@ $theme-color-dark: #20851c;
     li.active {
         >a {
             color: $white !important;
-            background-color: rgba(255, 255, 255, .2);
+            background-color: $theme-color !important;
+
+            svg,
+            i,
+            span {
+                color: $white !important;
+            }
+
+            &:hover,
+            &:focus {
+                color: $white !important;
+                background-color: $theme-color-focus !important;
+            }
+
+            .badge {
+                background-color: #fff !important;
+                color: $theme-color !important;
+            }
         }
     }
 }
@@ -47,6 +100,10 @@ $theme-color-dark: #20851c;
     .sidebar-menu {
         li {
             &:hover {
+                background-color: #f3f4f6;
+            }
+
+            &.active:hover {
                 background-color: $theme-color;
             }
         }
@@ -56,7 +113,6 @@ $theme-color-dark: #20851c;
 .nav-tabs {
     li {
         a {
-
             &:hover,
             &:focus,
             &:active {
@@ -129,7 +185,6 @@ a {
 }
 
 .dataTable tbody tr.active {
-
     td,
     &:hover td {
         background: $theme-color !important;
@@ -161,7 +216,6 @@ td {
     }
 
     span.active {
-
         &.active,
         &:hover.active {
             background: $theme-color;
@@ -169,7 +223,6 @@ td {
         }
 
         &.disabled {
-
             &.active,
             &:hover.active {
                 background: $theme-color;
@@ -192,21 +245,15 @@ td {
 
 .sidebar-scroll {
     &::-webkit-scrollbar-thumb {
-        background: rgba(43, 178, 38, 0.4);
+        background: rgba(0, 0, 0, 0.15);
     }
 
     &::-webkit-scrollbar-thumb:hover {
-        background: rgba(43, 178, 38, 0.6);
+        background: rgba(0, 0, 0, 0.25);
     }
 
     &::-webkit-scrollbar-thumb:active {
-        background: rgba(43, 178, 38, 0.6);
-    }
-}
-
-@media (min-width: 991px) {
-    .sidebar {
-        background: $theme-color;
+        background: rgba(0, 0, 0, 0.25);
     }
 }
 
@@ -214,23 +261,19 @@ td {
     background-color: $theme-color !important;
 }
 
-.sidebar-brand {
-    background-color: $theme-color;
-}
-
 @media (max-width: 500px) {
     .sidebar {
         &.sidebar-off {
-            background-color: $theme-color;
+            background-color: #fff !important;
         }
 
         .sidebar-scroll {
-            border-top-color: #0000000f !important;
+            border-top-color: rgba(0, 0, 0, 0.0588235294) !important;
         }
 
         #left-menu-topbar-button-container .nav-link,
         .sidebar-toggle-btn {
-            color: rgba(255, 255, 255, 0.8) !important;
+            color: #222 !important;
         }
     }
 }

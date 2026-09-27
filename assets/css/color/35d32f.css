@@ -1,28 +1,87 @@
-.sidebar-scroll,
+/* Sidebar - White background & black text */
+.sidebar {
+  background: #fff !important;
+}
+
+@media (min-width: 991px) {
+  .sidebar {
+    background: #fff !important;
+  }
+}
+
+.sidebar-brand {
+  background-color: #fff !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.0588235294);
+}
+
+.sidebar-scroll {
+  background: #fff !important;
+}
+
 #timeline .post-content .post-date span {
   background: #35d32f;
 }
 
 .sidebar-menu li a {
-  color: rgba(255, 255, 255, 0.8);
+  color: #222 !important;
 }
-.sidebar-menu li a:active, .sidebar-menu li a:hover, .sidebar-menu li a:focus {
-  color: #FFF !important;
-  background-color: rgba(255, 255, 255, 0.1);
+.sidebar-menu li a svg,
+.sidebar-menu li a i {
+  color: #222 !important;
+  stroke: currentColor;
 }
+.sidebar-menu li a:active,
+.sidebar-menu li a:hover,
+.sidebar-menu li a:focus {
+  color: #000 !important;
+  background-color: #f3f4f6;
+}
+.sidebar-menu li a:active svg,
+.sidebar-menu li a:hover svg,
+.sidebar-menu li a:focus svg,
+.sidebar-menu li a:active i,
+.sidebar-menu li a:hover i,
+.sidebar-menu li a:focus i {
+  color: #000 !important;
+}
+
 .sidebar-menu li ul li a {
-  color: rgba(255, 255, 255, 0.8);
+  color: #444 !important;
 }
 .sidebar-menu li ul li a:hover {
-  color: #FFF;
-  background-color: rgba(255, 255, 255, 0.1);
+  color: #000 !important;
+  background-color: #f3f4f6;
 }
+.sidebar-menu li ul li.active a,
+.sidebar-menu li ul li a.active {
+  color: #35d32f !important;
+  font-weight: 600;
+}
+
+/* Active menu item with default_theme_color */
 .sidebar-menu li.active > a {
-  color: #FFF !important;
-  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff !important;
+  background-color: #35d32f !important;
+}
+.sidebar-menu li.active > a svg,
+.sidebar-menu li.active > a i,
+.sidebar-menu li.active > a span {
+  color: #fff !important;
+}
+.sidebar-menu li.active > a:hover,
+.sidebar-menu li.active > a:focus {
+  color: #fff !important;
+  background-color: #2bb226 !important;
+}
+.sidebar-menu li.active > a .badge {
+  background-color: #fff !important;
+  color: #35d32f !important;
 }
 
 .sidebar-toggled .sidebar-menu li:hover {
+  background-color: #f3f4f6;
+}
+.sidebar-toggled .sidebar-menu li.active:hover {
   background-color: #35d32f;
 }
 
@@ -120,40 +179,32 @@ td.dropdown-option button:hover {
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb {
-  background: rgba(43, 178, 38, 0.4);
+  background: rgba(0, 0, 0, 0.15);
 }
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(43, 178, 38, 0.6);
+  background: rgba(0, 0, 0, 0.25);
 }
 .sidebar-scroll::-webkit-scrollbar-thumb:active {
-  background: rgba(43, 178, 38, 0.6);
+  background: rgba(0, 0, 0, 0.25);
 }
 
-@media (min-width: 991px) {
-  .sidebar {
-    background: #35d32f;
-  }
-}
 .bg-primary {
   background-color: #35d32f !important;
 }
 
-.sidebar-brand {
-  background-color: #35d32f;
-}
-
 @media (max-width: 500px) {
   .sidebar.sidebar-off {
-    background-color: #35d32f;
+    background-color: #fff !important;
   }
   .sidebar .sidebar-scroll {
     border-top-color: rgba(0, 0, 0, 0.0588235294) !important;
   }
   .sidebar #left-menu-topbar-button-container .nav-link,
   .sidebar .sidebar-toggle-btn {
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: #222 !important;
   }
 }
+
 .form-check-input:checked {
   background-color: #35d32f !important;
   border-color: #35d32f !important;
