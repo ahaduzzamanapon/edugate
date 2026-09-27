@@ -60,6 +60,11 @@ class Clients_model extends Crud_model {
             $where .= " AND $clients_table.lead_source_id='$source'";
         }
 
+        $preferred_country = $this->_get_clean_value($options, "preferred_country");
+        if ($preferred_country) {
+            $where .= " AND $clients_table.preferred_country=" . $this->db->escape($preferred_country);
+        }
+
         $owner_id = $this->_get_clean_value($options, "owner_id");
         if ($owner_id) {
             $where .= " AND ($clients_table.owner_id=$owner_id OR FIND_IN_SET('$owner_id', $clients_table.managers))";
@@ -132,11 +137,11 @@ class Clients_model extends Crud_model {
             "id" => $clients_table . ".id",
             "company_name" => $clients_table . ".company_name",
             "created_date" => $clients_table . ".created_date",
-            "primary_contact" => $users_table . ".first_name",
             "status" => "lead_status_title",
             "owner_name" => "owner_details.owner_name",
             "primary_contact" => "primary_contact",
-            "client_groups" => "client_groups"
+            "client_groups" => "client_groups",
+            "preferred_country" => $clients_table . ".preferred_country"
         );
 
         $order_by = get_array_value($available_order_by_list, $this->_get_clean_value($options, "order_by"));
@@ -158,6 +163,7 @@ class Clients_model extends Crud_model {
             $where .= " $clients_table.id LIKE '%$search_by%' ESCAPE '!' ";
             $where .= " OR $clients_table.company_name LIKE '%$search_by%' ESCAPE '!' ";
             $where .= " OR $clients_table.phone LIKE '%$search_by%' ESCAPE '!' ";
+            $where .= " OR $clients_table.preferred_country LIKE '%$search_by%' ESCAPE '!' ";
             $where .= " OR CONCAT($users_table.first_name, ' ', $users_table.last_name) LIKE '%$search_by%' ESCAPE '!' ";
             $where .= " OR (SELECT GROUP_CONCAT($labels_table.title, ', ') FROM $labels_table WHERE FIND_IN_SET($labels_table.id, $clients_table.labels)) LIKE '%$search_by%' ESCAPE '!' ";
 
@@ -396,6 +402,11 @@ class Clients_model extends Crud_model {
         $source = $this->_get_clean_value($options, "source");
         if ($source) {
             $where .= " AND $clients_table.lead_source_id='$source'";
+        }
+
+        $preferred_country = $this->_get_clean_value($options, "preferred_country");
+        if ($preferred_country) {
+            $where .= " AND $clients_table.preferred_country=" . $this->db->escape($preferred_country);
         }
 
         $search = $this->_get_clean_value($options, "search");

@@ -17,6 +17,7 @@
                     {name: "owner_id", class: "w200", options: <?php echo json_encode($owners_dropdown); ?>},
 <?php } ?>
                 {name: "label_id", class: "w200", options: <?php echo $labels_dropdown; ?>},
+                {name: "preferred_country", class: "w200", options: <?php echo json_encode($countries_filter_dropdown); ?>},
                 {name: "source", class: "w200", options: <?php echo view("leads/lead_sources"); ?>},
 <?php echo $custom_field_filters; ?>
             ],

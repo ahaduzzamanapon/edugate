@@ -57,9 +57,53 @@ class Leads extends Security_Controller {
             $view_data['lead_statuses'] = $all_statuses;
         }
 
+        // Prepare transition map for each status
+        $status_transition_map = array();
+        $is_admin = $this->login_user->is_admin ? true : false;
+        $statuses_by_id = array();
+        foreach ($all_statuses as $st) {
+            $statuses_by_id[(int)$st->id] = $st;
+        }
+
+        foreach ($all_statuses as $st) {
+            $from_id = (int)$st->id;
+            $options_for_status = array();
+
+            if ($is_admin) {
+                foreach ($all_statuses as $target_st) {
+                    $options_for_status[] = array("id" => (int)$target_st->id, "text" => $target_st->title);
+                }
+            } else {
+                $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($this->login_user, $from_id);
+
+                if ($allowed_move_ids === null) {
+                    $target_pool = ($allowed_status_ids !== null) ? $filtered_statuses : $all_statuses;
+                    foreach ($target_pool as $target_st) {
+                        $options_for_status[] = array("id" => (int)$target_st->id, "text" => $target_st->title);
+                    }
+                } else {
+                    if (isset($statuses_by_id[$from_id])) {
+                        $options_for_status[] = array("id" => $from_id, "text" => $statuses_by_id[$from_id]->title);
+                    }
+                    foreach ($allowed_move_ids as $to_id) {
+                        if ((int)$to_id !== $from_id && isset($statuses_by_id[(int)$to_id])) {
+                            $options_for_status[] = array("id" => (int)$to_id, "text" => $statuses_by_id[(int)$to_id]->title);
+                        }
+                    }
+                }
+            }
+
+            $status_transition_map[$from_id] = $options_for_status;
+        }
+
+        $view_data['status_transition_map'] = $status_transition_map;
+
         $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
         $view_data['owners_dropdown'] = $this->_get_owners_dropdown("filter");
         $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
+
+        $lead_countries_model = model("App\Models\Lead_countries_model");
+        $view_data['countries_filter_dropdown'] = $lead_countries_model->get_country_filter_dropdown();
 
         $view_data['selected_status_id'] = clean_data($status_id);
 
@@ -105,6 +149,27 @@ class Leads extends Security_Controller {
                 }
             }
             $view_data['statuses'] = $filtered_statuses;
+        } else if (!$lead_id && !$this->login_user->is_admin) {
+            $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($this->login_user, 0);
+            if ($allowed_move_ids !== null) {
+                $filtered_statuses = array();
+                foreach ($all_statuses as $st) {
+                    if (in_array((int)$st->id, $allowed_move_ids)) {
+                        $filtered_statuses[] = $st;
+                    }
+                }
+                $view_data['statuses'] = $filtered_statuses;
+            } else if ($allowed_status_ids !== null) {
+                $filtered_statuses = array();
+                foreach ($all_statuses as $st) {
+                    if (in_array((int)$st->id, $allowed_status_ids)) {
+                        $filtered_statuses[] = $st;
+                    }
+                }
+                $view_data['statuses'] = $filtered_statuses;
+            } else {
+                $view_data['statuses'] = $all_statuses;
+            }
         } else if ($allowed_status_ids !== null) {
             $filtered_statuses = array();
             foreach ($all_statuses as $st) {
@@ -193,14 +258,20 @@ class Leads extends Security_Controller {
         validate_list_of_numbers($labels);
 
         $new_status_id = $this->request->getPost('lead_status_id');
+        $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
         if ($client_id) {
             $existing_lead = $this->Clients_model->get_one($client_id);
             if ($new_status_id && (int)$existing_lead->lead_status_id !== (int)$new_status_id) {
-                $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
                 if (!$lead_role_permissions_model->can_transition($this->login_user, $existing_lead->lead_status_id, $new_status_id)) {
                     echo json_encode(array("success" => false, 'message' => "You are not authorized to transition this lead to the selected status."));
                     return;
                 }
+            }
+        } else if (!$this->login_user->is_admin && $new_status_id) {
+            $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($this->login_user, 0);
+            if ($allowed_move_ids !== null && !in_array((int)$new_status_id, $allowed_move_ids)) {
+                echo json_encode(array("success" => false, 'message' => "You are not authorized to create a lead with this status."));
+                return;
             }
         }
 
@@ -323,6 +394,7 @@ class Leads extends Security_Controller {
             "custom_fields" => $custom_fields,
             "leads_only" => true,
             "status" => $this->request->getPost('status'),
+            "preferred_country" => $this->request->getPost('preferred_country'),
             "source" => $this->request->getPost('source'),
             "owner_id" => $show_own_leads_only_user_id ? $show_own_leads_only_user_id : $this->request->getPost('owner_id'),
             "start_date" => $this->request->getPost("start_date"),
@@ -405,10 +477,13 @@ class Leads extends Security_Controller {
             $name = anchor(get_uri("leads/view/" . $data->id), $data->company_name, array("class" => "js-selection-id", "data-id" => $data->id));
         }
 
+        $country = $data->preferred_country ? "<span class='badge bg-light text-dark border'>" . htmlspecialchars($data->preferred_country) . "</span>" : "-";
+
         $row_data = array(
             $name,
             $data->primary_contact ? $primary_contact : "",
             $phone,
+            $country,
             $owner,
             $data->created_date,
             format_to_datetime($data->created_date)
@@ -1134,6 +1209,8 @@ class Leads extends Security_Controller {
         $view_data['owners_dropdown'] = $this->_get_owners_dropdown("filter");
         $view_data['lead_sources'] = $this->Lead_source_model->get_details()->getResult();
         $view_data['labels_dropdown'] = json_encode($this->make_labels_dropdown("client", "", true));
+        $lead_countries_model = model("App\Models\Lead_countries_model");
+        $view_data['countries_filter_dropdown'] = $lead_countries_model->get_country_filter_dropdown();
         $view_data["custom_field_filters"] = $this->Custom_fields_model->get_custom_field_filters("leads", $this->login_user->is_admin, $this->login_user->user_type);
 
         return $this->template->rander("leads/kanban/all_leads", $view_data);
@@ -1149,6 +1226,7 @@ class Leads extends Security_Controller {
 
         $options = array(
             "status" => $this->request->getPost('status'),
+            "preferred_country" => $this->request->getPost('preferred_country'),
             "owner_id" => $show_own_leads_only_user_id ? $show_own_leads_only_user_id : $this->request->getPost('owner_id'),
             "source" => $this->request->getPost('source'),
             "search" => $this->request->getPost('search'),
@@ -1169,6 +1247,20 @@ class Leads extends Security_Controller {
 
         $view_data["total_columns"] = count($filtered_columns);
         $view_data["columns"] = $filtered_columns;
+
+        $status_transition_map = array();
+        $is_admin = $this->login_user->is_admin ? true : false;
+        foreach ($filtered_columns as $col) {
+            $from_id = (int)$col->id;
+            if ($is_admin) {
+                $status_transition_map[$from_id] = null;
+            } else {
+                $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($this->login_user, $from_id);
+                $status_transition_map[$from_id] = $allowed_move_ids;
+            }
+        }
+        $view_data["status_transition_map"] = $status_transition_map;
+        $view_data["is_admin"] = $is_admin;
 
         return $this->template->view('leads/kanban/kanban_view', $view_data);
     }
@@ -1204,6 +1296,167 @@ class Leads extends Security_Controller {
 
         $this->Clients_model->ci_save($data, $id);
         echo json_encode(array("success" => true, "message" => app_lang('record_saved')));
+    }
+
+    /* load lead transfer modal form */
+    function transfer_modal_form() {
+        $lead_id = $this->request->getPost('lead_id');
+        validate_numeric_value($lead_id);
+        $this->validate_lead_access($lead_id);
+
+        $lead_info = $this->Clients_model->get_one($lead_id);
+        if (!$lead_info || !$lead_info->id) {
+            echo json_encode(array("success" => false, "message" => app_lang("record_not_found")));
+            return;
+        }
+
+        $from_context = $this->request->getPost('from_context');
+        if (!$from_context) {
+            $from_context = "table";
+        }
+
+        $sort = $this->request->getPost('sort');
+        $to_status_id = (int)$this->request->getPost('to_status_id');
+
+        $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+        $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($this->login_user, $lead_info->lead_status_id);
+
+        $all_statuses = $this->Lead_status_model->get_details()->getResult();
+        $allowed_statuses = array();
+        foreach ($all_statuses as $st) {
+            if ($this->login_user->is_admin || $allowed_move_ids === null || in_array((int)$st->id, $allowed_move_ids)) {
+                $allowed_statuses[] = $st;
+            }
+        }
+
+        // If to_status_id not given, default to first allowed status different from current if available
+        if (!$to_status_id && !empty($allowed_statuses)) {
+            foreach ($allowed_statuses as $st) {
+                if ((int)$st->id !== (int)$lead_info->lead_status_id) {
+                    $to_status_id = (int)$st->id;
+                    break;
+                }
+            }
+            if (!$to_status_id) {
+                $to_status_id = (int)$allowed_statuses[0]->id;
+            }
+        }
+
+        $current_status = $this->Lead_status_model->get_one($lead_info->lead_status_id);
+        $target_status = $to_status_id ? $this->Lead_status_model->get_one($to_status_id) : null;
+
+        $qualified_staff = $to_status_id ? $lead_role_permissions_model->get_staff_with_access_to_status($to_status_id) : array();
+
+        $view_data = array(
+            "lead_info" => $lead_info,
+            "current_status" => $current_status,
+            "to_status_id" => $to_status_id,
+            "target_status" => $target_status,
+            "allowed_statuses" => $allowed_statuses,
+            "qualified_staff" => $qualified_staff,
+            "from_context" => $from_context,
+            "sort" => $sort
+        );
+
+        return $this->template->view('leads/transfer_modal_form', $view_data);
+    }
+
+    /* get staff members who have access to a specific status */
+    function get_staff_for_status($status_id = 0) {
+        $status_id = (int)$status_id;
+        if (!$status_id) {
+            echo json_encode(array("success" => false, "staff" => array()));
+            return;
+        }
+
+        $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+        $qualified_users = $lead_role_permissions_model->get_staff_with_access_to_status($status_id);
+
+        $staff_list = array();
+        foreach ($qualified_users as $u) {
+            $role_text = $u->is_admin ? "Admin" : ($u->role_title ? $u->role_title : "Staff");
+            $staff_list[] = array(
+                "id" => $u->id,
+                "text" => $u->first_name . " " . $u->last_name . " (" . $role_text . ")"
+            );
+        }
+
+        echo json_encode(array("success" => true, "staff" => $staff_list));
+    }
+
+    /* save lead transfer (status + owner + optional sort & note) */
+    function save_transfer() {
+        $this->check_module_availability("module_lead");
+
+        $lead_id = (int)$this->request->getPost('lead_id');
+        $to_status_id = (int)$this->request->getPost('to_status_id');
+        $owner_id = (int)$this->request->getPost('owner_id');
+        $from_context = $this->request->getPost('from_context');
+        $sort = $this->request->getPost('sort');
+        $note = $this->request->getPost('note');
+
+        if (!$lead_id || !$to_status_id || !$owner_id) {
+            echo json_encode(array("success" => false, "message" => "Please select status and assignee."));
+            return;
+        }
+
+        validate_numeric_value($lead_id);
+        $this->validate_lead_access($lead_id);
+
+        $lead_info = $this->Clients_model->get_one($lead_id);
+        $current_status_id = (int)$lead_info->lead_status_id;
+
+        // Permission check: Can login user transition from current to target status?
+        $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+        if (!$lead_role_permissions_model->can_transition($this->login_user, $current_status_id, $to_status_id)) {
+            echo json_encode(array("success" => false, "message" => "You are not authorized to transition this lead to the selected status."));
+            return;
+        }
+
+        // Validate that assigned staff actually has access to the target status
+        $qualified_users = $lead_role_permissions_model->get_staff_with_access_to_status($to_status_id);
+        $qualified_ids = array_map(function($u) { return (int)$u->id; }, $qualified_users);
+        if (!in_array($owner_id, $qualified_ids)) {
+            echo json_encode(array("success" => false, "message" => "The selected staff member does not have access to this status."));
+            return;
+        }
+
+        $data = array(
+            "lead_status_id" => $to_status_id,
+            "owner_id" => $owner_id
+        );
+        if ($sort !== null && $sort !== '') {
+            $data["sort"] = $sort;
+        }
+
+        $save_id = $this->Clients_model->ci_save($data, $lead_id);
+
+        if (!$save_id) {
+            echo json_encode(array("success" => false, "message" => app_lang('error_occurred')));
+            return;
+        }
+
+        // Save internal note if provided
+        if ($note) {
+            $to_status = $this->Lead_status_model->get_one($to_status_id);
+            $status_title = $to_status ? $to_status->title : "Status #$to_status_id";
+            $note_data = array(
+                "title" => "Lead Transferred to " . $status_title,
+                "description" => $note,
+                "client_id" => $lead_id,
+                "created_by" => $this->login_user->id,
+                "created_at" => get_current_utc_time()
+            );
+            $this->Notes_model->ci_save($note_data);
+        }
+
+        echo json_encode(array(
+            "success" => true,
+            "from_context" => $from_context,
+            "id" => $lead_id,
+            "data" => $this->_row_data($lead_id),
+            "message" => "Lead transferred successfully."
+        ));
     }
 
     function make_client_modal_form($lead_id = 0) {
@@ -1891,7 +2144,28 @@ class Leads extends Security_Controller {
         $view_data['calendar_filter_dropdown'] = $this->get_calendar_filter_dropdown("lead");
         $view_data['event_labels_dropdown'] = json_encode($this->make_labels_dropdown("event", "", true, app_lang("event") . " " . strtolower(app_lang("label"))));
 
-        $view_data['lead_statuses'] = $this->Lead_status_model->get_id_and_text_dropdown(array("title"));
+        $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+        $all_statuses_dropdown = $this->Lead_status_model->get_id_and_text_dropdown(array("title"));
+        if (!$this->login_user->is_admin && $lead_info->lead_status_id) {
+            $current_status_id = (int)$lead_info->lead_status_id;
+            $allowed_move_ids = $lead_role_permissions_model->get_allowed_move_status_ids($this->login_user, $current_status_id);
+
+            if ($allowed_move_ids !== null) {
+                $filtered_lead_statuses = array();
+                foreach ($all_statuses_dropdown as $st_opt) {
+                    $st_id = (int)$st_opt->id;
+                    if ($st_id === $current_status_id || in_array($st_id, $allowed_move_ids)) {
+                        $filtered_lead_statuses[] = $st_opt;
+                    }
+                }
+                $view_data['lead_statuses'] = $filtered_lead_statuses;
+            } else {
+                $view_data['lead_statuses'] = $all_statuses_dropdown;
+            }
+        } else {
+            $view_data['lead_statuses'] = $all_statuses_dropdown;
+        }
+
         $view_data['team_members_dropdown'] = $this->Users_model->get_id_and_text_dropdown(array("first_name", "last_name"), array("deleted" => 0, "status" => "active", "user_type" => "staff"));
         $view_data['lead_sources'] = $this->Lead_source_model->get_id_and_text_dropdown(array("title"));
         $view_data['label_suggestions'] = $this->make_labels_dropdown("client", $lead_info->labels);
@@ -1945,6 +2219,19 @@ class Leads extends Security_Controller {
         $this->validate_lead_access($id);
 
         $value = $this->request->getPost('value');
+
+        if ($data_field == "lead_status_id" || $data_field == "status") {
+            $lead_info = $this->Clients_model->get_one($id);
+            $current_status_id = (int)$lead_info->lead_status_id;
+            $new_status_id = (int)$value;
+
+            $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+            if (!$lead_role_permissions_model->can_transition($this->login_user, $current_status_id, $new_status_id)) {
+                echo json_encode(array("success" => false, "message" => "You are not authorized to transition this lead to the selected status."));
+                return false;
+            }
+            $data_field = "lead_status_id";
+        }
 
         if ($data_field == "labels" || $data_field == "managers") {
             validate_list_of_numbers($value);

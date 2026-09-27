@@ -50,4 +50,13 @@ class Lead_countries_model extends Crud_model {
         return $dropdown;
     }
 
+    function get_country_filter_dropdown() {
+        $list = $this->get_details()->getResult();
+        $dropdown = array(array("id" => "", "text" => "- Preferred Country -"));
+        foreach ($list as $item) {
+            $dropdown[] = array("id" => $item->title, "text" => $item->title);
+        }
+        return $dropdown;
+    }
+
 }

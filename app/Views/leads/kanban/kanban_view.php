@@ -167,15 +167,11 @@
     };
 
 
-    saveStatusAndSort = function ($item, status) {
-        appLoader.show();
-        adjustViewHeightWidth();
-
+    getCalculatedSort = function ($item) {
         var $prev = $item.prev(),
                 $next = $item.next(),
                 prevSort = 0, nextSort = 0, newSort = 0,
-                step = 100000, stepDiff = 500,
-                id = $item.attr("data-id");
+                step = 100000, stepDiff = 500;
 
         if ($prev && $prev.attr("data-sort")) {
             prevSort = $prev.attr("data-sort") * 1;
@@ -185,37 +181,65 @@
             nextSort = $next.attr("data-sort") * 1;
         }
 
-
         if (!prevSort && nextSort) {
-            //item moved at the top
             newSort = nextSort - stepDiff;
-
         } else if (!nextSort && prevSort) {
-            //item moved at the bottom
             newSort = prevSort + step;
-
         } else if (prevSort && nextSort) {
-            //item moved inside two items
             newSort = (prevSort + nextSort) / 2;
-
         } else if (!prevSort && !nextSort) {
-            //It's the first item of this column
-            newSort = step * 100; //set a big value for 1st item
+            newSort = step * 100;
         }
 
-        $item.attr("data-sort", newSort);
+        return newSort;
+    };
 
+    saveStatusAndSort = function ($item, status, e) {
+        appLoader.show();
+        adjustViewHeightWidth();
+
+        var newSort = getCalculatedSort($item),
+                id = $item.attr("data-id");
+
+        $item.attr("data-sort", newSort);
 
         appAjaxRequest({
             url: '<?php echo_uri("leads/save_lead_sort_and_status") ?>',
             type: "POST",
             data: {id: id, sort: newSort, lead_status_id: status},
-            success: function () {
+            success: function (result) {
                 appLoader.hide();
+
+                if (result && result.success === false) {
+                    appAlert.error(result.message || "এই স্ট্যাটাসে লিড পাঠানোর অনুমতি আপনার রোলে নেই।");
+                    if (e && e.from) {
+                        if (e.oldIndex !== undefined && e.from.children[e.oldIndex]) {
+                            e.from.insertBefore(e.item, e.from.children[e.oldIndex]);
+                        } else {
+                            e.from.appendChild(e.item);
+                        }
+                    } else {
+                        $("#reload-kanban-button:visible").trigger("click");
+                    }
+                    adjustViewHeightWidth();
+                    return;
+                }
 
                 if (isMobile()) {
                     adjustViewHeightWidth();
                 }
+            },
+            error: function () {
+                appLoader.hide();
+                appAlert.error("An error occurred while moving the lead.");
+                if (e && e.from) {
+                    if (e.oldIndex !== undefined && e.from.children[e.oldIndex]) {
+                        e.from.insertBefore(e.item, e.from.children[e.oldIndex]);
+                    } else {
+                        e.from.appendChild(e.item);
+                    }
+                }
+                adjustViewHeightWidth();
             }
         });
 
@@ -232,7 +256,8 @@
         }
 
         var isChrome = !!window.chrome && !!window.chrome.webstore;
-
+        var statusTransitionMap = <?php echo isset($status_transition_map) ? json_encode($status_transition_map) : "{}"; ?>;
+        var isAdminUser = <?php echo (isset($is_admin) && $is_admin) ? 'true' : ($login_user->is_admin ? 'true' : 'false'); ?>;
 
         $(".kanban-item-list").each(function (index) {
             var id = this.id;
@@ -240,12 +265,45 @@
             var options = {
                 animation: 150,
                 group: "kanban-item-list",
+                onMove: function (evt) {
+                    if (isAdminUser) return true;
+
+                    var fromCol = $(evt.from).attr("data-lead_status_id");
+                    var toCol = $(evt.to).attr("data-lead_status_id");
+
+                    if (fromCol === toCol) {
+                        return true;
+                    }
+
+                    var allowed = statusTransitionMap[fromCol];
+                    if (allowed === null) {
+                        return true;
+                    }
+
+                    if (Array.isArray(allowed) && allowed.indexOf(parseInt(toCol)) !== -1) {
+                        return true;
+                    }
+
+                    return false;
+                },
                 onAdd: function (e) {
-                    //moved to another column. update bothe sort and status
-                    saveStatusAndSort($(e.item), $(e.item).closest(".kanban-item-list").attr("data-lead_status_id"));
+                    // Moved to another column: open transfer modal to choose role-authorized assignee
+                    var $item = $(e.item);
+                    var toStatusId = $item.closest(".kanban-item-list").attr("data-lead_status_id");
+                    var leadId = $item.attr("data-id");
+                    var newSort = getCalculatedSort($item);
+                    $item.attr("data-sort", newSort);
+
+                    window.currentKanbanDropEvent = e;
+                    window.kanbanTransferCompleted = false;
+
+                    var $trigger = $('<a href="#" class="hide" data-act="ajax-modal" data-title="Transfer Lead / লিড স্থানান্তর" data-action-url="<?php echo_uri("leads/transfer_modal_form"); ?>" data-post-lead_id="' + leadId + '" data-post-to_status_id="' + toStatusId + '" data-post-sort="' + newSort + '" data-post-from_context="kanban"></a>');
+                    $('body').append($trigger);
+                    $trigger.trigger('click');
+                    $trigger.remove();
                 },
                 onUpdate: function (e) {
-                    //updated sort
+                    // Reordered inside same column: update sort only
                     saveStatusAndSort($(e.item));
                 }
             };
@@ -271,6 +329,22 @@
             Sortable.create($("#" + id)[0], options);
         });
 
+        // Revert kanban item if modal closed without saving
+        $('#ajaxModal').off('hidden.bs.modal.kanbanTransfer').on('hidden.bs.modal.kanbanTransfer', function () {
+            if (window.currentKanbanDropEvent) {
+                var evt = window.currentKanbanDropEvent;
+                if (!window.kanbanTransferCompleted && evt.from && evt.item) {
+                    if (evt.oldIndex !== undefined && evt.from.children[evt.oldIndex]) {
+                        evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+                    } else {
+                        evt.from.appendChild(evt.item);
+                    }
+                    adjustViewHeightWidth();
+                }
+                window.currentKanbanDropEvent = null;
+                window.kanbanTransferCompleted = false;
+            }
+        });
 
         adjustViewHeightWidth();
 

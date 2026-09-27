@@ -27,15 +27,11 @@
                     $status = $lead_status;
                 }
 
-                echo js_anchor($status, array(
-                    'title' => "",
+                echo modal_anchor(get_uri("leads/transfer_modal_form"), $status, array(
+                    'title' => "Transfer Lead / লিড স্থানান্তর",
                     "class" => "",
-                    "data-id" => $lead_info->id,
-                    "data-value" => $lead_info->lead_status_id,
-                    "data-act" => "lead-modifier",
-                    "data-modifier-group" => "lead_info",
-                    "data-field" => "status",
-                    "data-action-url" => get_uri("leads/update_lead_info/$lead_info->id/lead_status_id")
+                    "data-post-lead_id" => $lead_info->id,
+                    "data-post-from_context" => "details"
                 ));
                 ?>
             </li>

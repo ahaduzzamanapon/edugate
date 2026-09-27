@@ -45,14 +45,15 @@
             smartFilterIdentity: "all_leads_list", //a to z and _ only. should be unique to avoid conflicts
             selectionHandler: {batchUpdateUrl: batchUpdateUrl, batchDeleteUrl: batchDeleteUrl},
             ignoreSavedFilter: ignoreSavedFilter,
-            order: [[4, "desc"]],
+            order: [[5, "desc"]],
             columns: [
                 {title: "<?php echo app_lang("name") ?>", "class": "all", order_by: "company_name"},
                 {title: "<?php echo app_lang("primary_contact") ?>", order_by: "primary_contact"},
                 {title: "<?php echo app_lang("phone") ?>"},
+                {title: "Preferred Country", order_by: "preferred_country"},
                 {title: "<?php echo app_lang("owner") ?>", order_by: "owner_name"},
                 {visible: false, searchable: false, order_by: "created_date"},
-                {title: "<?php echo app_lang("created_at") ?>", "iDataSort": 4, order_by: "created_date"},
+                {title: "<?php echo app_lang("created_at") ?>", "iDataSort": 5, order_by: "created_date"},
                 {title: "<?php echo app_lang("status") ?>", order_by: "status"}
                 <?php echo $custom_field_headers; ?>,
                 {title: '<i data-feather="menu" class="icon-16"></i>', "class": "text-center option w100"}
@@ -62,12 +63,13 @@
                  {name: "owner_id", class: "w200", options: <?php echo json_encode($owners_dropdown); ?>},
                 <?php } ?>
                 {name: "status", class: "w200", options: <?php echo view("leads/lead_statuses"); ?>},
-            {name: "source", class: "w200", options: <?php echo view("leads/lead_sources"); ?>} ,
-            <?php echo $custom_field_filters; ?>
+                {name: "preferred_country", class: "w200", options: <?php echo json_encode($countries_filter_dropdown); ?>},
+                {name: "source", class: "w200", options: <?php echo view("leads/lead_sources"); ?>},
+                <?php echo $custom_field_filters; ?>
             ],
             rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 5, 6], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 5, 6], '<?php echo $custom_field_headers; ?>')
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 6, 7], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 6, 7], '<?php echo $custom_field_headers; ?>')
     });
     }
     );
