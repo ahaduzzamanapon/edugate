@@ -196,6 +196,82 @@
                             <label
                                 for="can_manage_user_role_and_permissions"><?php echo app_lang("can_manage_user_role_and_permissions"); ?></label>
                         </div>
+                        <div id="settings_permissions_container" class="<?php echo $can_manage_all_kinds_of_settings ? 'hide' : ''; ?> mt15">
+                            <div class="card border">
+                                <div class="card-header bg-light-gray d-flex justify-content-between align-items-center py-2">
+                                    <span class="fw-bold"><i data-feather="sliders" class="icon-16 me-2"></i> <?php echo app_lang("settings_permissions"); ?> (<?php echo app_lang("tab_permissions"); ?>)</span>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-default btn-sm" id="btn-select-all-settings"><?php echo app_lang("select_all"); ?></button>
+                                        <button type="button" class="btn btn-default btn-sm" id="btn-deselect-all-settings"><?php echo app_lang("deselect_all"); ?></button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-3">
+                                    <p class="text-off small mb-3">Configure which settings categories and tabs this role can access.</p>
+                                    <div class="settings-permission-tree">
+                                        <?php
+                                        $settings_tree = get_settings_tree_structure();
+                                        foreach ($settings_tree as $cat_key => $category) {
+                                            $cat_items = $category["items"];
+                                        ?>
+                                            <div class="card mb-2 border rounded">
+                                                <div class="card-header bg-light d-flex align-items-center justify-content-between py-2 px-3">
+                                                    <div class="form-check mb-0 d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input perm-category-checkbox" id="cat_<?php echo $cat_key; ?>" data-category="<?php echo $cat_key; ?>">
+                                                        <label class="form-check-label fw-bold cursor-pointer ms-2 mb-0" for="cat_<?php echo $cat_key; ?>">
+                                                            <?php echo app_lang($category["title"]); ?>
+                                                        </label>
+                                                    </div>
+                                                    <a class="text-secondary cursor-pointer" data-bs-toggle="collapse" href="#collapse_cat_<?php echo $cat_key; ?>" role="button" aria-expanded="true">
+                                                        <i data-feather="chevron-down" class="icon-14"></i>
+                                                    </a>
+                                                </div>
+                                                <div class="collapse show" id="collapse_cat_<?php echo $cat_key; ?>">
+                                                    <div class="card-body py-2 px-3">
+                                                        <div class="row">
+                                                            <?php foreach ($cat_items as $item) { 
+                                                                $item_name = $item["name"];
+                                                                $has_sub_items = !empty($item["sub_items"]);
+                                                                $is_item_checked = !empty($settings_permissions[$item_name]);
+                                                            ?>
+                                                                <div class="<?php echo $has_sub_items ? 'col-12' : 'col-md-6 col-lg-4'; ?> mb-2">
+                                                                    <div class="form-check d-flex align-items-center">
+                                                                        <input type="checkbox" name="settings_permissions[<?php echo $item_name; ?>]" value="1" id="perm_<?php echo $item_name; ?>" class="form-check-input perm-item-checkbox cat-item-<?php echo $cat_key; ?> <?php echo $has_sub_items ? 'perm-parent-item' : ''; ?>" data-category="<?php echo $cat_key; ?>" data-item="<?php echo $item_name; ?>" <?php echo $is_item_checked ? 'checked' : ''; ?>>
+                                                                        <label for="perm_<?php echo $item_name; ?>" class="form-check-label cursor-pointer ms-2 mb-0 <?php echo $has_sub_items ? 'fw-bold' : ''; ?>">
+                                                                            <?php echo ($item["title"] === "PWA" ? "PWA" : app_lang($item["title"])); ?>
+                                                                        </label>
+                                                                    </div>
+
+                                                                    <?php if ($has_sub_items) { ?>
+                                                                        <div class="ms-4 mt-2 p-2 border-start bg-light rounded" id="sub_items_<?php echo $item_name; ?>">
+                                                                            <div class="text-off small mb-2 fw-semibold">Sub-tabs:</div>
+                                                                            <div class="row">
+                                                                                <?php foreach ($item["sub_items"] as $sub_item) { 
+                                                                                    $sub_name = $sub_item["name"];
+                                                                                    $is_sub_checked = !empty($settings_permissions[$sub_name]);
+                                                                                ?>
+                                                                                    <div class="col-md-4 col-sm-6 mb-1">
+                                                                                        <div class="form-check d-flex align-items-center">
+                                                                                            <input type="checkbox" name="settings_permissions[<?php echo $sub_name; ?>]" value="1" id="perm_<?php echo $sub_name; ?>" class="form-check-input perm-sub-item-checkbox cat-item-<?php echo $cat_key; ?> sub-of-<?php echo $item_name; ?>" data-parent="<?php echo $item_name; ?>" data-category="<?php echo $cat_key; ?>" <?php echo $is_sub_checked ? 'checked' : ''; ?>>
+                                                                                            <label for="perm_<?php echo $sub_name; ?>" class="form-check-label cursor-pointer ms-2 mb-0">
+                                                                                                <?php echo ($sub_item["title"] === "PWA" ? "PWA" : app_lang($sub_item["title"])); ?>
+                                                                                            </label>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                <?php } ?>
+                                                                            </div>
+                                                                        </div>
+                                                                    <?php } ?>
+                                                                </div>
+                                                            <?php } ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php } ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div>
                             <?php
                             echo form_checkbox("can_add_or_invite_new_team_members", "1", $can_add_or_invite_new_team_members ? true : false, "id='can_add_or_invite_new_team_members' class='form-check-input'");
@@ -1422,10 +1498,68 @@
         $("#can_manage_all_kinds_of_settings").click(function () {
             if ($(this).is(":checked")) {
                 $("#can_manage_user_role_and_permissions_container").removeClass("hide");
+                $("#settings_permissions_container").addClass("hide");
             } else {
                 $("#can_manage_user_role_and_permissions_container").addClass("hide");
+                $("#settings_permissions_container").removeClass("hide");
             }
         });
+
+        // Settings permissions tree actions
+        $("#btn-select-all-settings").click(function () {
+            $("#settings_permissions_container input[type='checkbox']").prop("checked", true);
+            updateCategoryCheckboxes();
+        });
+
+        $("#btn-deselect-all-settings").click(function () {
+            $("#settings_permissions_container input[type='checkbox']").prop("checked", false);
+            updateCategoryCheckboxes();
+        });
+
+        $(".perm-category-checkbox").click(function () {
+            var cat = $(this).data("category");
+            var isChecked = $(this).is(":checked");
+            $(".cat-item-" + cat).prop("checked", isChecked);
+            updateCategoryCheckboxes();
+        });
+
+        $(".perm-parent-item").click(function () {
+            var item = $(this).data("item");
+            var isChecked = $(this).is(":checked");
+            $(".sub-of-" + item).prop("checked", isChecked);
+            updateCategoryCheckboxes();
+        });
+
+        $(".perm-sub-item-checkbox").click(function () {
+            var parent = $(this).data("parent");
+            var anyChecked = $(".sub-of-" + parent + ":checked").length > 0;
+            $("#perm_" + parent).prop("checked", anyChecked);
+            updateCategoryCheckboxes();
+        });
+
+        $(".perm-item-checkbox").click(function () {
+            updateCategoryCheckboxes();
+        });
+
+        function updateCategoryCheckboxes() {
+            $(".perm-category-checkbox").each(function () {
+                var cat = $(this).data("category");
+                var total = $(".cat-item-" + cat).length;
+                var checked = $(".cat-item-" + cat + ":checked").length;
+                if (total > 0 && total === checked) {
+                    $(this).prop("checked", true);
+                    $(this).prop("indeterminate", false);
+                } else if (checked > 0) {
+                    $(this).prop("checked", false);
+                    $(this).prop("indeterminate", true);
+                } else {
+                    $(this).prop("checked", false);
+                    $(this).prop("indeterminate", false);
+                }
+            });
+        }
+
+        updateCategoryCheckboxes();
 
         $("#do_not_show_projects").click(function () {
             if ($(this).is(":checked")) {

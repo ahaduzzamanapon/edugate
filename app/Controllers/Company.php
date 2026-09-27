@@ -8,7 +8,7 @@ class Company extends Security_Controller {
 
     function __construct() {
         parent::__construct();
-        $this->access_only_admin_or_settings_admin();
+        $this->access_only_admin_or_settings_admin("company");
         $this->Company_model = model('App\Models\Company_model');
     }
 

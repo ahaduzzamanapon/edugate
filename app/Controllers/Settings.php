@@ -12,8 +12,119 @@ class Settings extends Security_Controller {
         $this->access_only_admin_or_settings_admin();
     }
 
+    public function _remap($method, ...$params) {
+        if (!method_exists($this, $method)) {
+            show_404();
+        }
+
+        if ($method !== "index") {
+            $setting_name = $this->_get_setting_name_by_method($method);
+            if ($setting_name) {
+                $this->access_only_admin_or_settings_admin($setting_name);
+            }
+        }
+
+        return $this->$method(...$params);
+    }
+
+    private function _get_setting_name_by_method($method) {
+        $map = array(
+            "general" => "general",
+            "save_general_settings" => "general_settings",
+            "ui_options" => "ui_options",
+            "save_ui_options_settings" => "ui_options",
+            "top_menu" => "top_menu",
+            "save_top_menu_settings" => "top_menu",
+            "save_top_menu" => "top_menu",
+            "top_menu_item_edit_modal_form" => "top_menu",
+            "footer" => "footer",
+            "save_footer_settings" => "footer",
+            "save_footer_menu" => "footer",
+            "footer_item_edit_modal_form" => "footer",
+            "pwa" => "pwa",
+            "save_pwa_settings" => "pwa",
+            "localization" => "localization",
+            "save_localization_settings" => "localization",
+            "email" => "email",
+            "save_email_settings" => "email",
+            "test_smtp_connection" => "email",
+            "send_test_mail" => "email",
+            "ip_restriction" => "ip_restriction",
+            "save_ip_settings" => "ip_restriction",
+            "client_permissions" => "client_permissions",
+            "save_client_settings" => "client_permissions",
+            "invoices" => "invoices",
+            "invoice_general" => "invoices",
+            "invoice_reminders" => "invoices",
+            "save_invoice_settings" => "invoices",
+            "save_invoice_general_settings" => "invoices",
+            "save_invoice_reminders_settings" => "invoices",
+            "e_invoice" => "invoices",
+            "save_e_invoice_settings" => "invoices",
+            "events" => "events",
+            "save_event_settings" => "events",
+            "notifications" => "notifications",
+            "notification_modal_form" => "notifications",
+            "notification_settings_list_data" => "notifications",
+            "save_notification_settings" => "notifications",
+            "modules" => "modules",
+            "save_module_settings" => "modules",
+            "cron_job" => "cron_job",
+            "integration" => "integration",
+            "re_captcha" => "integration",
+            "save_re_captcha_settings" => "integration",
+            "bitbucket" => "integration",
+            "save_bitbucket_settings" => "integration",
+            "slack" => "integration",
+            "save_slack_settings" => "integration",
+            "test_slack_notification" => "integration",
+            "github" => "integration",
+            "save_github_settings" => "integration",
+            "tinymce" => "integration",
+            "save_tinymce_settings" => "integration",
+            "imap_settings" => "integration",
+            "save_imap_settings" => "integration",
+            "authorize_imap" => "integration",
+            "google_drive" => "integration",
+            "save_google_drive_settings" => "integration",
+            "tickets" => "tickets",
+            "save_ticket_settings" => "tickets",
+            "tasks" => "tasks",
+            "save_task_settings" => "tasks",
+            "estimates" => "estimates",
+            "save_estimate_settings" => "estimates",
+            "estimate_request_settings" => "estimates",
+            "save_estimate_request_settings" => "estimates",
+            "timesheets" => "timesheets",
+            "save_timesheets_settings" => "timesheets",
+            "gdpr" => "gdpr",
+            "save_gdpr_settings" => "gdpr",
+            "orders" => "orders",
+            "save_order_settings" => "orders",
+            "projects" => "projects",
+            "save_projects_settings" => "projects",
+            "contracts" => "contracts",
+            "save_contract_settings" => "contracts",
+            "leads" => "leads",
+            "save_lead_settings" => "leads",
+            "proposals" => "proposals",
+            "save_proposal_settings" => "proposals",
+            "store" => "store",
+            "save_store_settings" => "store",
+            "subscriptions" => "subscriptions",
+            "save_subscription_settings" => "subscriptions",
+            "save_details_page_layout_settings" => "general"
+        );
+        return isset($map[$method]) ? $map[$method] : "";
+    }
+
     function index() {
-        app_redirect('settings/general');
+        $first_url = get_first_accessible_settings_url($this->login_user);
+        if ($first_url) {
+            app_redirect($first_url);
+        } else {
+            app_redirect('forbidden');
+        }
     }
 
     function general() {

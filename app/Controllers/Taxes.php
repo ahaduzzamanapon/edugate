@@ -8,7 +8,7 @@ class Taxes extends Security_Controller {
 
     function __construct() {
         parent::__construct();
-        $this->access_only_admin_or_settings_admin();
+        $this->access_only_admin_or_settings_admin("taxes");
     }
 
     function index() {

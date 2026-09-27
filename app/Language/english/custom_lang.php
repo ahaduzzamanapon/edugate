@@ -52,8 +52,12 @@ $lang["preferred_country"] = "Preferred Country";
 $lang["can_access_reports"] = "Can access reports";
 $lang["hot_leads"] = "Hot Leads";
 $lang["followup_leads"] = "Follow-up Leads";
-$lang["won_leads"] = "Admitted / Won";
+$lang["won_leads"] = "Won";
 $lang["recent_leads"] = "Recent Leads";
+$lang["settings_permissions"] = "Settings Permissions";
+$lang["tab_permissions"] = "Tab Permissions";
+$lang["select_all"] = "Select All";
+$lang["deselect_all"] = "Deselect All";
 return $lang;
 
 

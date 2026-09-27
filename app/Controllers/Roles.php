@@ -9,7 +9,7 @@ class Roles extends Security_Controller
     {
         parent::__construct();
         $this->access_only_admin_or_settings_admin();
-        if (!($this->login_user->is_admin || get_array_value($this->login_user->permissions, "can_manage_user_role_and_permissions"))) {
+        if (!($this->login_user->is_admin || get_array_value($this->login_user->permissions, "can_manage_user_role_and_permissions") || can_access_setting("roles", $this->login_user) || can_access_setting("user_roles", $this->login_user))) {
             app_redirect("forbidden");
         }
     }
@@ -146,6 +146,9 @@ class Roles extends Security_Controller
             $view_data['can_view_files'] = get_array_value($permissions, "can_view_files");
             $view_data['can_comment_on_projects'] = get_array_value($permissions, "can_comment_on_projects");
 
+            $settings_permissions = get_array_value($permissions, "settings_permissions");
+            $view_data['settings_permissions'] = is_array($settings_permissions) ? $settings_permissions : array();
+
             $view_data['permissions'] = $permissions;
 
             return $this->template->view("roles/permissions", $view_data);
@@ -278,6 +281,7 @@ class Roles extends Security_Controller
             $can_add_or_invite_new_team_members = $this->request->getPost('can_add_or_invite_new_team_members');
             $can_activate_deactivate_team_members = $this->request->getPost('can_activate_deactivate_team_members');
             $can_delete_team_members = $this->request->getPost('can_delete_team_members');
+            $settings_permissions = $this->request->getPost('settings_permissions');
         } else {
             //is not an admin user, fetch data
             $role_info = $this->Roles_model->get_one($id);
@@ -288,6 +292,7 @@ class Roles extends Security_Controller
             $can_add_or_invite_new_team_members = get_array_value($permissions, "can_add_or_invite_new_team_members");
             $can_activate_deactivate_team_members = get_array_value($permissions, "can_activate_deactivate_team_members");
             $can_delete_team_members = get_array_value($permissions, "can_delete_team_members");
+            $settings_permissions = get_array_value($permissions, "settings_permissions");
         }
 
         $message_permission = "";
@@ -385,6 +390,7 @@ class Roles extends Security_Controller
             "can_upload_and_edit_files" => $can_upload_and_edit_files,
             "can_view_files" => $can_view_files,
             "can_comment_on_projects" => $can_comment_on_projects,
+            "settings_permissions" => is_array($settings_permissions) ? $settings_permissions : array(),
         );
 
         try {

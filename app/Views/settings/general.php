@@ -11,14 +11,25 @@
             <div class="card">
 
                 <ul data-bs-toggle="ajax-tab" class="nav nav-tabs bg-white title scrollable-tabs" role="tablist">
-                    <li><a role="presentation" data-bs-toggle="tab" href="javascript:;" data-bs-target="#general-settings-tab"> <?php echo app_lang('general_settings'); ?></a></li>
-                    <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/ui_options"); ?>" data-bs-target="#ui-options-settings-tab"><?php echo app_lang('ui_options'); ?></a></li>
-                    <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/top_menu"); ?>" data-bs-target="#top-menu-settings-tab"><?php echo app_lang('top_menu'); ?></a></li>
-                    <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/footer"); ?>" data-bs-target="#footer-settings-tab"><?php echo app_lang('footer'); ?></a></li>
-                    <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/pwa"); ?>" data-bs-target="#pwa-settings-tab">PWA</a></li>
+                    <?php if (can_access_setting("general_settings")) { ?>
+                        <li><a role="presentation" data-bs-toggle="tab" href="javascript:;" data-bs-target="#general-settings-tab"> <?php echo app_lang('general_settings'); ?></a></li>
+                    <?php } ?>
+                    <?php if (can_access_setting("ui_options")) { ?>
+                        <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/ui_options"); ?>" data-bs-target="#ui-options-settings-tab"><?php echo app_lang('ui_options'); ?></a></li>
+                    <?php } ?>
+                    <?php if (can_access_setting("top_menu")) { ?>
+                        <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/top_menu"); ?>" data-bs-target="#top-menu-settings-tab"><?php echo app_lang('top_menu'); ?></a></li>
+                    <?php } ?>
+                    <?php if (can_access_setting("footer")) { ?>
+                        <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/footer"); ?>" data-bs-target="#footer-settings-tab"><?php echo app_lang('footer'); ?></a></li>
+                    <?php } ?>
+                    <?php if (can_access_setting("pwa")) { ?>
+                        <li><a role="presentation" data-bs-toggle="tab" href="<?php echo_uri("settings/pwa"); ?>" data-bs-target="#pwa-settings-tab">PWA</a></li>
+                    <?php } ?>
                 </ul>
 
                 <div class="tab-content">
+                    <?php if (can_access_setting("general_settings")) { ?>
                     <div role="tabpanel" class="tab-pane fade" id="general-settings-tab">
                         <?php echo form_open(get_uri("settings/save_general_settings"), array("id" => "general-settings-form", "class" => "general-form dashed-row", "role" => "form")); ?>
 
@@ -216,10 +227,19 @@
 
                         <?php echo form_close(); ?>
                     </div>
-                    <div role="tabpanel" class="tab-pane fade" id="ui-options-settings-tab"></div>
-                    <div role="tabpanel" class="tab-pane fade" id="top-menu-settings-tab"></div>
-                    <div role="tabpanel" class="tab-pane fade" id="footer-settings-tab"></div>
-                    <div role="tabpanel" class="tab-pane fade" id="pwa-settings-tab"></div>
+                    <?php } ?>
+                    <?php if (can_access_setting("ui_options")) { ?>
+                        <div role="tabpanel" class="tab-pane fade" id="ui-options-settings-tab"></div>
+                    <?php } ?>
+                    <?php if (can_access_setting("top_menu")) { ?>
+                        <div role="tabpanel" class="tab-pane fade" id="top-menu-settings-tab"></div>
+                    <?php } ?>
+                    <?php if (can_access_setting("footer")) { ?>
+                        <div role="tabpanel" class="tab-pane fade" id="footer-settings-tab"></div>
+                    <?php } ?>
+                    <?php if (can_access_setting("pwa")) { ?>
+                        <div role="tabpanel" class="tab-pane fade" id="pwa-settings-tab"></div>
+                    <?php } ?>
 
                 </div>
 
@@ -233,6 +253,9 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
+        if (!$('[data-bs-toggle="ajax-tab"] li a.active').length) {
+            $('[data-bs-toggle="ajax-tab"] li a').first().trigger("click");
+        }
 
         $("#general-settings-form").appForm({
             isModal: false,

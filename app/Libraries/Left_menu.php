@@ -262,10 +262,11 @@ class Left_menu
                 $sidebar_menu["admin_dashboard"] = array("name" => "admin_dashboard", "url" => "admin_dashboard", "class" => "layout");
             }
 
-            if ($this->ci->login_user->is_admin || get_array_value($this->ci->login_user->permissions, "can_manage_all_kinds_of_settings")) {
+            if ($this->ci->login_user->is_admin || get_array_value($this->ci->login_user->permissions, "can_manage_all_kinds_of_settings") || has_any_settings_permission($this->ci->login_user)) {
+                $first_url = get_first_accessible_settings_url($this->ci->login_user);
                 $sidebar_menu["settings"] = array(
                     "name" => "settings",
-                    "url" => "settings/general",
+                    "url" => $first_url ? $first_url : "settings/general",
                     "class" => "settings",
                     "sub_pages" => array(
                         "email_templates/index",

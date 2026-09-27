@@ -28,7 +28,8 @@ class Left_menus extends Security_Controller {
                 $this->access_only_clients();
             }
         } else if (!$type || $type == "client_default") {
-            $this->access_only_admin_or_settings_admin();
+            $specific = ($type == "client_default") ? "client_left_menu" : "left_menu";
+            $this->access_only_admin_or_settings_admin($specific);
         }
     }
 
@@ -62,7 +63,7 @@ class Left_menus extends Security_Controller {
             $items_data = json_decode($items_data, true);
 
             //check if the setting menu has been added, if not, add it to the bottom
-            if (($this->login_user->is_admin || get_array_value($this->login_user->permissions, "can_manage_all_kinds_of_settings")) && $type != "client_default" && array_search("settings", array_column($items_data, "name")) === false) {
+            if (($this->login_user->is_admin || get_array_value($this->login_user->permissions, "can_manage_all_kinds_of_settings") || has_any_settings_permission($this->login_user)) && $type != "client_default" && array_search("settings", array_column($items_data, "name")) === false) {
                 $items_data[] = array("name" => "settings");
             }
 

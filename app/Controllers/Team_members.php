@@ -47,6 +47,10 @@ class Team_members extends Security_Controller {
     //none admin users can only change his/her own info
     //allowed members can update other members info    
     private function can_update_team_members_info($user_id) {
+        if (!$this->login_user->is_admin && $this->_is_target_super_admin($user_id)) {
+            return false;
+        }
+
         $access_info = $this->get_access_info("team_member_update_permission");
 
         if ($this->login_user->id === $user_id) {
@@ -64,6 +68,10 @@ class Team_members extends Security_Controller {
     //only admin/permitted users can change other user's info
     //other users can only change his/her own info
     private function can_access_user_settings($user_id) {
+        if (!$this->login_user->is_admin && $this->_is_target_super_admin($user_id)) {
+            app_redirect("forbidden");
+        }
+
         if ($user_id && ($this->login_user->is_admin || $this->login_user->id === $user_id || get_array_value($this->login_user->permissions, "can_manage_user_role_and_permissions") || get_array_value($this->login_user->permissions, "can_activate_deactivate_team_members"))) {
             return true;
         } else {
@@ -71,7 +79,26 @@ class Team_members extends Security_Controller {
         }
     }
 
+    private function _is_target_super_admin($user) {
+        if (!$user) {
+            return false;
+        }
+        if (is_numeric($user)) {
+            $user = $this->Users_model->get_one($user);
+        }
+        if (is_array($user)) {
+            return ((isset($user['is_admin']) && $user['is_admin'] == 1) || (isset($user['id']) && $user['id'] == 1) || (isset($user['email']) && $user['email'] === "admin@eduget.com"));
+        }
+        if (is_object($user)) {
+            return ((isset($user->is_admin) && $user->is_admin == 1) || (isset($user->id) && $user->id == 1) || (isset($user->email) && $user->email === "admin@eduget.com"));
+        }
+        return false;
+    }
+
     private function _can_activate_deactivate_team_member($member_info) {
+        if (!$this->login_user->is_admin && $this->_is_target_super_admin($member_info)) {
+            return false;
+        }
 
         if ($member_info && !$this->is_own_id($member_info->id) && ($this->login_user->is_admin || (get_array_value($this->login_user->permissions, "can_activate_deactivate_team_members") && $member_info->is_admin != 1))) {
             return true;
@@ -80,6 +107,9 @@ class Team_members extends Security_Controller {
     }
 
     private function _can_delete_team_member($member_info) {
+        if (!$this->login_user->is_admin && $this->_is_target_super_admin($member_info)) {
+            return false;
+        }
 
         //can't delete own user
         //only admin can delete other admin users.
@@ -127,6 +157,10 @@ class Team_members extends Security_Controller {
         $view_data['role_dropdown'] = $this->_get_roles_dropdown();
 
         $id = $this->request->getPost('id');
+        if ($id && !$this->login_user->is_admin && $this->_is_target_super_admin($id)) {
+            app_redirect("forbidden");
+        }
+
         $options = array(
             "id" => $id,
         );
@@ -337,9 +371,16 @@ class Team_members extends Security_Controller {
             "custom_field_filter" => $this->prepare_custom_field_filter_values("team_members", $this->login_user->is_admin, $this->login_user->user_type)
         );
 
+        if (!$this->login_user->is_admin) {
+            $options["non_admin_users_only"] = true;
+        }
+
         $list_data = $this->Users_model->get_details($options)->getResult();
         $result = array();
         foreach ($list_data as $data) {
+            if (!$this->login_user->is_admin && $this->_is_target_super_admin($data)) {
+                continue;
+            }
             $result[] = $this->_make_row($data, $custom_fields);
         }
         echo json_encode(array("data" => $result));
@@ -353,8 +394,14 @@ class Team_members extends Security_Controller {
             "id" => $id,
             "custom_fields" => $custom_fields
         );
+        if (!$this->login_user->is_admin) {
+            $options["non_admin_users_only"] = true;
+        }
 
         $data = $this->Users_model->get_details($options)->getRow();
+        if (!$data || (!$this->login_user->is_admin && $this->_is_target_super_admin($data))) {
+            return false;
+        }
         return $this->_make_row($data, $custom_fields);
     }
 
@@ -403,6 +450,10 @@ class Team_members extends Security_Controller {
         $user_info = $this->Users_model->get_one($id);
         $this->_ensure_staff_user($user_info);
 
+        if (!$this->login_user->is_admin && $this->_is_target_super_admin($user_info)) {
+            app_redirect("forbidden");
+        }
+
         if (!$this->_can_delete_team_member($user_info)) {
             app_redirect("forbidden");
         }
@@ -424,7 +475,9 @@ class Team_members extends Security_Controller {
                 app_redirect("forbidden");
             }
 
-
+            if (!$this->login_user->is_admin && $this->_is_target_super_admin($id)) {
+                app_redirect("forbidden");
+            }
 
             //we have an id. view the team_member's profie
             $options = array("id" => $id, "user_type" => "staff");
@@ -533,7 +586,17 @@ class Team_members extends Security_Controller {
             }
 
             //we don't have any specific id to view. show the list of team_member
-            $view_data['team_members'] = $this->Users_model->get_details(array("user_type" => "staff", "status" => "active"))->getResult();
+            $options = array("user_type" => "staff", "status" => "active");
+            if (!$this->login_user->is_admin) {
+                $options["non_admin_users_only"] = true;
+            }
+            $team_members = $this->Users_model->get_details($options)->getResult();
+            if (!$this->login_user->is_admin) {
+                $team_members = array_filter($team_members, function($member) {
+                    return !$this->_is_target_super_admin($member);
+                });
+            }
+            $view_data['team_members'] = $team_members;
             return $this->template->rander("team_members/profile_card", $view_data);
         }
     }

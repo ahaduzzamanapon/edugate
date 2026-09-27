@@ -448,16 +448,10 @@ class Dashboard extends Security_Controller {
 
         $widgets = $this->_check_widgets_permissions();
 
-        // Row 1: Lead KPI status cards (3-3-3-3)
+        // Row 1: Lead KPI status cards (6-6)
         $row_1_columns = array();
         if (get_array_value($widgets, "total_leads")) {
             $row_1_columns[] = array("total_leads");
-        }
-        if (get_array_value($widgets, "hot_leads")) {
-            $row_1_columns[] = array("hot_leads");
-        }
-        if (get_array_value($widgets, "followup_leads")) {
-            $row_1_columns[] = array("followup_leads");
         }
         if (get_array_value($widgets, "won_leads")) {
             $row_1_columns[] = array("won_leads");
@@ -466,11 +460,7 @@ class Dashboard extends Security_Controller {
         $row1 = array();
         $row1["columns"] = $row_1_columns;
         $count = count($row_1_columns);
-        if ($count == 4) {
-            $row1["ratio"] = "3-3-3-3";
-        } else if ($count == 3) {
-            $row1["ratio"] = "4-4-4";
-        } else if ($count == 2) {
+        if ($count == 2) {
             $row1["ratio"] = "6-6";
         } else if ($count == 1) {
             $row1["ratio"] = "12";
@@ -1357,7 +1347,7 @@ class Dashboard extends Security_Controller {
     }
 
     function client_default_dashboard() {
-        $this->access_only_admin_or_settings_admin();
+        $this->access_only_admin_or_settings_admin("dashboard");
         $this->login_user->client_permissions = "all"; //only for dashboard managment (admin/setting admin)
         $this->show_staff_on_staff = false;
         $view_data = array();
@@ -1435,7 +1425,7 @@ class Dashboard extends Security_Controller {
 
 
     function edit_client_default_dashboard() {
-        $this->access_only_admin_or_settings_admin();
+        $this->access_only_admin_or_settings_admin("dashboard");
         $this->login_user->client_permissions = "all"; //only for dashboard managment (admin/setting admin)
         $this->show_staff_on_staff = false;
         $widget_data = $this->_get_client_dashboard_widget_data();
@@ -1446,7 +1436,7 @@ class Dashboard extends Security_Controller {
     }
 
     function save_client_default_dashboard() {
-        $this->access_only_admin_or_settings_admin();
+        $this->access_only_admin_or_settings_admin("dashboard");
 
         $dashboard_data = json_decode($this->request->getPost("data"));
         $serialized_data = $dashboard_data ? serialize($dashboard_data) : serialize(array());
@@ -1457,7 +1447,7 @@ class Dashboard extends Security_Controller {
     }
 
     function restore_to_default_client_dashboard() {
-        $this->access_only_admin_or_settings_admin();
+        $this->access_only_admin_or_settings_admin("dashboard");
         $this->Settings_model->save_setting("client_default_dashboard", "");
         app_redirect("dashboard/client_default_dashboard");
     }

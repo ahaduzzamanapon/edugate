@@ -29,11 +29,15 @@ $settings_menu = array(
 );
 
 //restricted settings
-if ($login_user->is_admin || (get_array_value($login_user->permissions, "can_manage_all_kinds_of_settings") && get_array_value($login_user->permissions, "can_manage_user_role_and_permissions"))) {
-    $settings_menu["access_permission"] = array(
-        array("name" => "roles", "url" => "roles"),
-        array("name" => "user_roles", "url" => "roles/user_roles")
-    );
+$access_permission_items = array();
+if ($login_user->is_admin || (get_array_value($login_user->permissions, "can_manage_all_kinds_of_settings") && get_array_value($login_user->permissions, "can_manage_user_role_and_permissions")) || can_access_setting("roles", $login_user)) {
+    $access_permission_items[] = array("name" => "roles", "url" => "roles");
+}
+if ($login_user->is_admin || (get_array_value($login_user->permissions, "can_manage_all_kinds_of_settings") && get_array_value($login_user->permissions, "can_manage_user_role_and_permissions")) || can_access_setting("user_roles", $login_user)) {
+    $access_permission_items[] = array("name" => "user_roles", "url" => "roles/user_roles");
+}
+if (count($access_permission_items)) {
+    $settings_menu["access_permission"] = $access_permission_items;
 }
 
 $settings_menu["access_permission"][] = array("name" => "team", "url" => "team");
@@ -104,11 +108,30 @@ if (get_setting("module_lead") == "1") {
 $settings_menu["setup"][] = array("name" => "gdpr", "url" => "settings/gdpr");
 $settings_menu["setup"][] = array("name" => "pages", "url" => "pages");
 
-if ($login_user->is_admin) {
+if ($login_user->is_admin || can_access_setting("all_plugins", $login_user)) {
     $settings_menu["plugins"][] = array("name" => "all_plugins", "url" => "rise_plugins");
 }
 
 $settings_menu = app_hooks()->apply_filters('app_filter_admin_settings_menu', $settings_menu);
+
+// filter settings menu according to permissions
+$filtered_settings_menu = array();
+foreach ($settings_menu as $category => $items) {
+    if (!is_array($items)) {
+        continue;
+    }
+    $allowed_items = array();
+    foreach ($items as $item) {
+        $setting_name = get_array_value($item, "name");
+        if (can_access_setting($setting_name, $login_user)) {
+            $allowed_items[] = $item;
+        }
+    }
+    if (count($allowed_items)) {
+        $filtered_settings_menu[$category] = $allowed_items;
+    }
+}
+$settings_menu = $filtered_settings_menu;
 ?>
 
 <ul id="settings-left-menu-accordion" class="nav nav-tabs vertical settings d-block" role="tablist">

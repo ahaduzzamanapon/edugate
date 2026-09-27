@@ -1846,7 +1846,7 @@ if (!function_exists('won_leads_widget')) {
         $db = \Config\Database::connect();
         $rows = $db->query("SELECT id, title FROM " . $db->prefixTable('lead_status') . " WHERE deleted=0 AND (title LIKE '%admit%' OR title LIKE '%won%') ORDER BY id ASC")->getResult();
         $status_ids = array();
-        $title = "Admitted / Won";
+        $title = "Won";
         foreach ($rows as $r) {
             $status_ids[] = (int)$r->id;
         }

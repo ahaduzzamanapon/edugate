@@ -3225,3 +3225,259 @@ if (!function_exists('render_user_list')) {
         return $result;
     }
 }
+
+/**
+ * Returns tree structure of settings categories, items and sub-tabs
+ */
+if (!function_exists('get_settings_tree_structure')) {
+    function get_settings_tree_structure() {
+        return array(
+            "app_settings" => array(
+                "title" => "app_settings",
+                "items" => array(
+                    array(
+                        "name" => "general",
+                        "title" => "general",
+                        "url" => "settings/general",
+                        "sub_items" => array(
+                            array("name" => "general_settings", "title" => "general_settings", "url" => "settings/general"),
+                            array("name" => "ui_options", "title" => "ui_options", "url" => "settings/ui_options"),
+                            array("name" => "top_menu", "title" => "top_menu", "url" => "settings/top_menu"),
+                            array("name" => "footer", "title" => "footer", "url" => "settings/footer"),
+                            array("name" => "pwa", "title" => "PWA", "url" => "settings/pwa"),
+                        )
+                    ),
+                    array("name" => "localization", "title" => "localization", "url" => "settings/localization"),
+                    array("name" => "email", "title" => "email", "url" => "settings/email"),
+                    array("name" => "email_templates", "title" => "email_templates", "url" => "email_templates"),
+                    array("name" => "modules", "title" => "modules", "url" => "settings/modules"),
+                    array("name" => "left_menu", "title" => "left_menu", "url" => "left_menus"),
+                    array("name" => "notifications", "title" => "notifications", "url" => "settings/notifications"),
+                    array("name" => "integration", "title" => "integration", "url" => "settings/integration"),
+                    array("name" => "cron_job", "title" => "cron_job", "url" => "settings/cron_job"),
+                    array("name" => "updates", "title" => "updates", "url" => "Updates"),
+                )
+            ),
+            "access_permission" => array(
+                "title" => "access_permission",
+                "items" => array(
+                    array("name" => "roles", "title" => "roles", "url" => "roles"),
+                    array("name" => "user_roles", "title" => "user_roles", "url" => "roles/user_roles"),
+                    array("name" => "team", "title" => "team", "url" => "team"),
+                    array("name" => "ip_restriction", "title" => "ip_restriction", "url" => "settings/ip_restriction", "module" => "module_attendance"),
+                )
+            ),
+            "client_portal" => array(
+                "title" => "client_portal",
+                "items" => array(
+                    array("name" => "client_permissions", "title" => "client_permissions", "url" => "settings/client_permissions"),
+                    array("name" => "dashboard", "title" => "dashboard", "url" => "dashboard/client_default_dashboard"),
+                    array("name" => "client_left_menu", "title" => "client_left_menu", "url" => "left_menus/index/client_default"),
+                )
+            ),
+            "sales_and_prospects" => array(
+                "title" => "sales_and_prospects",
+                "items" => array(
+                    array("name" => "company", "title" => "company", "url" => "company"),
+                    array("name" => "item_categories", "title" => "item_categories", "url" => "item_categories"),
+                    array("name" => "invoices", "title" => "invoices", "url" => "settings/invoices", "module" => "module_invoice"),
+                    array("name" => "orders", "title" => "orders", "url" => "settings/orders", "module" => "module_order"),
+                    array("name" => "store", "title" => "store", "url" => "settings/store", "module" => "module_order"),
+                    array("name" => "estimates", "title" => "estimates", "url" => "settings/estimates", "module" => "module_estimate"),
+                    array("name" => "proposals", "title" => "proposals", "url" => "settings/proposals", "module" => "module_proposal"),
+                    array("name" => "contracts", "title" => "contracts", "url" => "settings/contracts", "module" => "module_contract"),
+                    array("name" => "subscriptions", "title" => "subscriptions", "url" => "settings/subscriptions", "module" => "module_subscription"),
+                    array("name" => "taxes", "title" => "taxes", "url" => "taxes"),
+                    array("name" => "payment_methods", "title" => "payment_methods", "url" => "payment_methods"),
+                )
+            ),
+            "setup" => array(
+                "title" => "setup",
+                "items" => array(
+                    array("name" => "custom_fields", "title" => "custom_fields", "url" => "custom_fields"),
+                    array("name" => "client_groups", "title" => "client_groups", "url" => "client_groups"),
+                    array("name" => "tasks", "title" => "tasks", "url" => "settings/tasks"),
+                    array("name" => "projects", "title" => "projects", "url" => "settings/projects"),
+                    array("name" => "timesheets", "title" => "timesheets", "url" => "settings/timesheets", "module" => "module_project_timesheet"),
+                    array("name" => "events", "title" => "events", "url" => "settings/events", "module" => "module_event"),
+                    array("name" => "expense_categories", "title" => "expense_categories", "url" => "expense_categories", "module" => "module_expense"),
+                    array("name" => "leave_types", "title" => "leave_types", "url" => "leave_types", "module" => "module_leave"),
+                    array("name" => "tickets", "title" => "tickets", "url" => "ticket_types", "module" => "module_ticket"),
+                    array("name" => "leads", "title" => "leads", "url" => "lead_status", "module" => "module_lead"),
+                    array("name" => "gdpr", "title" => "gdpr", "url" => "settings/gdpr"),
+                    array("name" => "pages", "title" => "pages", "url" => "pages"),
+                )
+            ),
+            "plugins" => array(
+                "title" => "plugins",
+                "items" => array(
+                    array("name" => "all_plugins", "title" => "all_plugins", "url" => "rise_plugins"),
+                )
+            )
+        );
+    }
+}
+
+/**
+ * Check if the user has access to a specific setting or sub-setting
+ */
+if (!function_exists('can_access_setting')) {
+    function can_access_setting($setting_name = "", $user = null) {
+        if (!$user) {
+            $ci = new Security_Controller(false);
+            $user = $ci->login_user;
+        }
+
+        if (!$user || !isset($user->id)) {
+            return false;
+        }
+
+        if ($user->is_admin) {
+            return true;
+        }
+
+        $permissions = $user->permissions;
+        if (!is_array($permissions)) {
+            $permissions = @unserialize($permissions);
+            if (!is_array($permissions)) {
+                $permissions = array();
+            }
+        }
+
+        // Master switch: can manage all kinds of settings
+        if (get_array_value($permissions, "can_manage_all_kinds_of_settings")) {
+            if (($setting_name === "roles" || $setting_name === "user_roles") && !get_array_value($permissions, "can_manage_user_role_and_permissions")) {
+                return false;
+            }
+            return true;
+        }
+
+        $settings_permissions = get_array_value($permissions, "settings_permissions");
+        if (!is_array($settings_permissions)) {
+            return false;
+        }
+
+        // Aliases mapping
+        $aliases = array(
+            "lead_status" => "leads",
+            "lead_source" => "leads",
+            "ticket_types" => "tickets",
+            "rise_plugins" => "all_plugins",
+            "order_status" => "orders",
+            "project_status" => "projects",
+            "checklist_template" => "tasks",
+            "checklist_groups" => "tasks",
+            "e_invoice_templates" => "invoices",
+            "contract_templates" => "contracts",
+            "proposal_templates" => "proposals",
+            "google_api" => "integration",
+            "microsoft_api" => "integration",
+        );
+
+        $check_name = isset($aliases[$setting_name]) ? $aliases[$setting_name] : $setting_name;
+
+        // If checking 'general' (the main general tab container)
+        if ($check_name === "general") {
+            if (!empty($settings_permissions["general"])) {
+                return true;
+            }
+            $general_sub_tabs = array("general_settings", "ui_options", "top_menu", "footer", "pwa");
+            foreach ($general_sub_tabs as $sub_tab) {
+                if (!empty($settings_permissions[$sub_tab])) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // If checking a sub-tab of general
+        if (in_array($check_name, array("general_settings", "ui_options", "top_menu", "footer", "pwa"))) {
+            if (!empty($settings_permissions[$check_name]) || !empty($settings_permissions["general"])) {
+                return true;
+            }
+            return false;
+        }
+
+        // Direct check
+        if (!empty($settings_permissions[$check_name])) {
+            return true;
+        }
+
+        return false;
+    }
+}
+
+/**
+ * Check if the user has permission to at least one setting
+ */
+if (!function_exists('has_any_settings_permission')) {
+    function has_any_settings_permission($user = null) {
+        if (!$user) {
+            $ci = new Security_Controller(false);
+            $user = $ci->login_user;
+        }
+
+        if (!$user || !isset($user->id)) {
+            return false;
+        }
+
+        if ($user->is_admin) {
+            return true;
+        }
+
+        $permissions = $user->permissions;
+        if (!is_array($permissions)) {
+            $permissions = @unserialize($permissions);
+            if (!is_array($permissions)) {
+                $permissions = array();
+            }
+        }
+
+        if (get_array_value($permissions, "can_manage_all_kinds_of_settings")) {
+            return true;
+        }
+
+        $settings_permissions = get_array_value($permissions, "settings_permissions");
+        if (is_array($settings_permissions)) {
+            foreach ($settings_permissions as $key => $val) {
+                if (!empty($val)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+}
+
+/**
+ * Returns the URL of the first accessible settings tab for the user
+ */
+if (!function_exists('get_first_accessible_settings_url')) {
+    function get_first_accessible_settings_url($user = null) {
+        if (!$user) {
+            $ci = new Security_Controller(false);
+            $user = $ci->login_user;
+        }
+
+        if (!$user || !isset($user->id)) {
+            return "";
+        }
+
+        $tree = get_settings_tree_structure();
+        foreach ($tree as $category) {
+            foreach ($category["items"] as $item) {
+                if (!empty($item["module"]) && get_setting($item["module"]) != "1") {
+                    continue;
+                }
+
+                $setting_name = $item["name"];
+                if (can_access_setting($setting_name, $user)) {
+                    return $item["url"];
+                }
+            }
+        }
+        return "";
+    }
+}
+

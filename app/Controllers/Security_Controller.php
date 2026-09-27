@@ -121,10 +121,24 @@ class Security_Controller extends App_Controller {
         }
     }
 
-    //only allowed to access for admin users or has admin privileges 
-    protected function access_only_admin_or_settings_admin() {
-        if (!($this->login_user->is_admin || get_array_value($this->login_user->permissions, "can_manage_all_kinds_of_settings"))) {
-            app_redirect("forbidden");
+    //only allowed to access for admin users or has admin privileges or specific setting permission
+    protected function access_only_admin_or_settings_admin($specific_setting = "") {
+        if ($this->login_user->is_admin) {
+            return true;
+        }
+
+        if (get_array_value($this->login_user->permissions, "can_manage_all_kinds_of_settings")) {
+            return true;
+        }
+
+        if ($specific_setting) {
+            if (!can_access_setting($specific_setting, $this->login_user)) {
+                app_redirect("forbidden");
+            }
+        } else {
+            if (!has_any_settings_permission($this->login_user)) {
+                app_redirect("forbidden");
+            }
         }
     }
 
@@ -1098,7 +1112,7 @@ class Security_Controller extends App_Controller {
 
     public function can_client_access($menu_item, $check_module = true) {
 
-        if ($this->login_user->user_type === "staff" && ($this->login_user->is_admin || get_array_value($this->login_user->permissions, "can_manage_all_kinds_of_settings"))) {
+        if ($this->login_user->user_type === "staff" && ($this->login_user->is_admin || get_array_value($this->login_user->permissions, "can_manage_all_kinds_of_settings") || can_access_setting("client_left_menu", $this->login_user))) {
             $this->login_user->client_permissions = "all";
             //set this permission only for admin and setting admin to manage the client settings (ex. left menu)
         }

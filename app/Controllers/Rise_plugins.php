@@ -6,7 +6,7 @@ class Rise_plugins extends Security_Controller {
 
     function __construct() {
         parent::__construct();
-        $this->access_only_admin();
+        $this->access_only_admin_or_settings_admin("all_plugins");
     }
 
     //load plugin list view

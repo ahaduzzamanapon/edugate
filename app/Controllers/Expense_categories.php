@@ -6,7 +6,7 @@ class Expense_categories extends Security_Controller {
 
     function __construct() {
         parent::__construct();
-        $this->access_only_admin_or_settings_admin();
+        $this->access_only_admin_or_settings_admin("expense_categories");
     }
 
     //load expense categories list view
