@@ -4,14 +4,16 @@ namespace App\Controllers;
 
 use App\Libraries\Excel_import;
 
-class Leaves extends Security_Controller {
+class Leaves extends Security_Controller
+{
 
     private $users_id_by_name = array();
     private $leave_types_id_by_title = array();
 
     use Excel_import;
 
-    function __construct() {
+    function __construct()
+    {
         parent::__construct();
         $this->access_only_team_members();
 
@@ -20,7 +22,8 @@ class Leaves extends Security_Controller {
 
     //only admin or assigend members can access/manage other member's leave
     //none admin users who has limited permission to manage other members leaves, can't manage his/her own leaves
-    protected function access_only_allowed_members($user_id = 0) {
+    protected function access_only_allowed_members($user_id = 0)
+    {
         if ($this->access_type !== "all") {
             if ($user_id === $this->login_user->id || !array_search($user_id, $this->allowed_members)) {
                 app_redirect("forbidden");
@@ -28,13 +31,15 @@ class Leaves extends Security_Controller {
         }
     }
 
-    protected function can_delete_leave_application() {
+    protected function can_delete_leave_application()
+    {
         if ($this->login_user->is_admin || get_array_value($this->login_user->permissions, "can_delete_leave_application") == "1") {
             return true;
         }
     }
 
-    function index($tab = "") {
+    function index($tab = "")
+    {
         $this->check_module_availability("module_leave");
 
         $view_data["can_manage_all_leaves"] = $this->login_user->is_admin || $this->access_type === "all";
@@ -45,7 +50,8 @@ class Leaves extends Security_Controller {
 
     //load assign leave modal 
 
-    function assign_leave_modal_form($applicant_id = 0) {
+    function assign_leave_modal_form($applicant_id = 0)
+    {
         validate_numeric_value($applicant_id);
 
         if ($applicant_id) {
@@ -68,14 +74,16 @@ class Leaves extends Security_Controller {
     }
 
     //all team members can apply for leave
-    function apply_leave_modal_form() {
+    function apply_leave_modal_form()
+    {
         $view_data['leave_types_dropdown'] = array("" => "-") + $this->Leave_types_model->get_dropdown_list(array("title"), "id", array("status" => "active"));
         $view_data['form_type'] = "apply_leave";
         return $this->template->view('leaves/modal_form', $view_data);
     }
 
     // save: assign leave 
-    function assign_leave() {
+    function assign_leave()
+    {
         $leave_data = $this->_prepare_leave_form_data();
         $applicant_id = $this->request->getPost('applicant_id');
         validate_numeric_value($applicant_id);
@@ -100,7 +108,8 @@ class Leaves extends Security_Controller {
 
     /* save: apply leave */
 
-    function apply_leave() {
+    function apply_leave()
+    {
         $leave_data = $this->_prepare_leave_form_data();
         $leave_data['applicant_id'] = $this->login_user->id;
         $leave_data['created_by'] = 0;
@@ -120,7 +129,8 @@ class Leaves extends Security_Controller {
 
     /* prepare common data for a leave application both for apply a leave or assign a leave */
 
-    private function _prepare_leave_form_data() {
+    private function _prepare_leave_form_data()
+    {
 
         $this->validate_submitted_data(array(
             "leave_type_id" => "required|numeric",
@@ -192,24 +202,28 @@ class Leaves extends Security_Controller {
     }
 
     // load pending approval tab
-    function pending_approval() {
+    function pending_approval()
+    {
         return $this->template->view("leaves/pending_approval");
     }
 
     // load all applications tab 
-    function all_applications() {
+    function all_applications()
+    {
         return $this->template->view("leaves/all_applications");
     }
 
     // load leave summary tab
-    function summary() {
+    function summary()
+    {
         $view_data['team_members_dropdown'] = json_encode($this->_get_members_dropdown_list_for_filter());
         $view_data['leave_types_dropdown'] = json_encode($this->_get_leave_types_dropdown_list_for_filter());
         return $this->template->view("leaves/summary", $view_data);
     }
 
     // list of pending leave application. prepared for datatable
-    function pending_approval_list_data() {
+    function pending_approval_list_data()
+    {
         $options = array("status" => "pending", "access_type" => $this->access_type, "allowed_members" => $this->allowed_members);
         $list_data = $this->Leave_applications_model->get_list($options)->getResult();
 
@@ -221,7 +235,8 @@ class Leaves extends Security_Controller {
     }
 
     // list of all leave application. prepared for datatable 
-    function all_application_list_data() {
+    function all_application_list_data()
+    {
 
         $this->validate_submitted_data(array(
             "applicant_id" => "numeric"
@@ -241,7 +256,8 @@ class Leaves extends Security_Controller {
     }
 
     // list of leave summary. prepared for datatable
-    function summary_list_data() {
+    function summary_list_data()
+    {
         $start_date = $this->request->getPost('start_date');
         $end_date = $this->request->getPost('end_date');
         $applicant_id = $this->request->getPost('applicant_id');
@@ -258,14 +274,16 @@ class Leaves extends Security_Controller {
     }
 
     // reaturn a row of leave application list table
-    private function _row_data($id) {
+    private function _row_data($id)
+    {
         $options = array("id" => $id);
         $data = $this->Leave_applications_model->get_list($options)->getRow();
         return $this->_make_row($data);
     }
 
     // prepare a row of leave application list table
-    private function _make_row($data) {
+    private function _make_row($data)
+    {
         $meta_info = $this->_prepare_leave_info($data);
         $option_icon = "info";
         if ($data->status === "pending") {
@@ -297,7 +315,8 @@ class Leaves extends Security_Controller {
     }
 
     // prepare a row of leave application list table
-    private function _make_row_for_summary($data) {
+    private function _make_row_for_summary($data)
+    {
         $meta_info = $this->_prepare_leave_info($data);
 
         return array(
@@ -308,7 +327,8 @@ class Leaves extends Security_Controller {
     }
 
     //return required style/format for a application
-    private function _prepare_leave_info($data) {
+    private function _prepare_leave_info($data)
+    {
         $image_url = get_avatar($data->applicant_avatar);
         $data->applicant_meta = "<span class='avatar avatar-xs mr10'><img src='$image_url' alt=''></span>" . $data->applicant_name;
 
@@ -349,7 +369,8 @@ class Leaves extends Security_Controller {
     }
 
     // reaturn a row of leave application list table
-    function application_details() {
+    function application_details()
+    {
         $this->validate_submitted_data(array(
             "id" => "required|numeric"
         ));
@@ -380,7 +401,8 @@ class Leaves extends Security_Controller {
     }
 
     //update leave status
-    function update_status() {
+    function update_status()
+    {
 
         $this->validate_submitted_data(array(
             "id" => "required|numeric",
@@ -434,7 +456,8 @@ class Leaves extends Security_Controller {
 
     //    delete a leave application
 
-    function delete() {
+    function delete()
+    {
 
         $id = $this->request->getPost('id');
 
@@ -457,7 +480,8 @@ class Leaves extends Security_Controller {
     }
 
     //view leave list of login user
-    function leave_info() {
+    function leave_info()
+    {
         $this->check_module_availability("module_leave");
 
         $view_data['applicant_id'] = $this->login_user->id;
@@ -471,7 +495,8 @@ class Leaves extends Security_Controller {
 
     //summary dropdown list of team members
 
-    private function _get_members_dropdown_list_for_filter() {
+    private function _get_members_dropdown_list_for_filter()
+    {
 
         if ($this->access_type === "all") {
             $where = array("user_type" => "staff");
@@ -495,7 +520,8 @@ class Leaves extends Security_Controller {
 
     //summary dropdown list of leave type 
 
-    private function _get_leave_types_dropdown_list_for_filter() {
+    private function _get_leave_types_dropdown_list_for_filter()
+    {
 
         $leave_type = $this->Leave_types_model->get_dropdown_list(array("title"), "id", array("status" => "active"));
 
@@ -506,7 +532,8 @@ class Leaves extends Security_Controller {
         return $leave_type_dropdown;
     }
 
-    function file_preview($id = "", $key = "") {
+    function file_preview($id = "", $key = "")
+    {
         if ($id) {
             validate_numeric_value($id);
             $leave_info = $this->Leave_applications_model->get_one($id);
@@ -531,61 +558,85 @@ class Leaves extends Security_Controller {
         }
     }
 
-    private function _validate_excel_import_access() {
+    private function _validate_excel_import_access()
+    {
         return ($this->access_only_allowed_members());
     }
 
-    private function _get_controller_slag() {
+    private function _get_controller_slag()
+    {
         return "leaves";
     }
 
-    private function _get_custom_field_context() {
+    private function _get_custom_field_context()
+    {
         return "leaves";
     }
 
-    private function _get_headers_for_import() {
+    private function _get_headers_for_import()
+    {
         $this->_init_required_data_before_starting_import();
 
         return array(
-            array("name" => "applicant", "custom_validation" => function ($applicant) {
-                //check the user is exist or not
-                if ($applicant) {
-                    $user_id = get_array_value($this->users_id_by_name, trim($applicant));
-                    if (!$user_id) {
-                        return array("error" => sprintf(app_lang("import_not_exists_error_message"), app_lang("user")));
+            array(
+                "name" => "applicant",
+                "custom_validation" => function ($applicant) {
+                    //check the user is exist or not
+                    if ($applicant) {
+                        $user_id = get_array_value($this->users_id_by_name, trim($applicant));
+                        if (!$user_id) {
+                            return array("error" => sprintf(app_lang("import_not_exists_error_message"), app_lang("user")));
+                        }
+                    } else {
+                        return array("error" => sprintf(app_lang("import_error_field_required"), app_lang("applicant")));
                     }
-                } else {
-                    return array("error" => sprintf(app_lang("import_error_field_required"), app_lang("applicant")));
                 }
-            }),
+            ),
             array("name" => "leave_type", "required" => true, "required_message" => sprintf(app_lang("import_error_field_required"), app_lang("leave_type"))),
-            array("name" => "start_date", "required" => true, "required_message" => app_lang("import_date_error_message"), "custom_validation" => function ($start_date) {
-                if (!$this->_check_valid_date($start_date)) {
-                    return array("error" => app_lang("import_date_error_message"));
+            array(
+                "name" => "start_date",
+                "required" => true,
+                "required_message" => app_lang("import_date_error_message"),
+                "custom_validation" => function ($start_date) {
+                    if (!$this->_check_valid_date($start_date)) {
+                        return array("error" => app_lang("import_date_error_message"));
+                    }
                 }
-            }),
-            array("name" => "end_date", "required" => true, "required_message" => app_lang("import_date_error_message"), "custom_validation" => function ($start_date) {
-                if (!$this->_check_valid_date($start_date)) {
-                    return array("error" => app_lang("import_date_error_message"));
+            ),
+            array(
+                "name" => "end_date",
+                "required" => true,
+                "required_message" => app_lang("import_date_error_message"),
+                "custom_validation" => function ($start_date) {
+                    if (!$this->_check_valid_date($start_date)) {
+                        return array("error" => app_lang("import_date_error_message"));
+                    }
                 }
-            }),
+            ),
             array("name" => "total_hours", "required" => true, "required_message" => sprintf(app_lang("import_error_field_required"), app_lang("total_hours"))),
             array("name" => "total_days", "required" => true, "required_message" => sprintf(app_lang("import_error_field_required"), app_lang("total_days"))),
             array("name" => "reason", "required" => true, "required_message" => sprintf(app_lang("import_error_field_required"), app_lang("reason"))),
-            array("name" => "status", "required" => true, "required_message" => sprintf(app_lang("import_error_field_required"), app_lang("status")), "custom_validation" => function ($status) {
-                if ($status && !in_array(strtolower($status), array("pending", "approved", "rejected", "canceled"))) {
-                    return array("error" => sprintf(app_lang("import_leave_status_error_message"), $status) . ".");
+            array(
+                "name" => "status",
+                "required" => true,
+                "required_message" => sprintf(app_lang("import_error_field_required"), app_lang("status")),
+                "custom_validation" => function ($status) {
+                    if ($status && !in_array(strtolower($status), array("pending", "approved", "rejected", "canceled"))) {
+                        return array("error" => sprintf(app_lang("import_leave_status_error_message"), $status) . ".");
+                    }
                 }
-            })
+            )
         );
     }
 
-    function download_sample_excel_file() {
+    function download_sample_excel_file()
+    {
         $this->access_only_allowed_members();
         return $this->download_app_files(get_setting("system_file_path"), serialize(array(array("file_name" => "import-leaves-sample.xlsx"))));
     }
 
-    private function _init_required_data_before_starting_import() {
+    private function _init_required_data_before_starting_import()
+    {
         $users = $this->Users_model->get_team_members_id_and_name()->getResult();
         $users_id_by_name = array();
         foreach ($users as $user) {
@@ -602,7 +653,8 @@ class Leaves extends Security_Controller {
         $this->leave_types_id_by_title = $leave_types_id_by_title;
     }
 
-    private function _save_a_row_of_excel_data($row_data) {
+    private function _save_a_row_of_excel_data($row_data)
+    {
         $now = get_current_utc_time();
 
         $leave_data_array = $this->_prepare_leave_data($row_data);
@@ -624,7 +676,8 @@ class Leaves extends Security_Controller {
         }
     }
 
-    private function _prepare_leave_data($row_data) {
+    private function _prepare_leave_data($row_data)
+    {
 
         $leave_data = array();
 
@@ -641,7 +694,7 @@ class Leaves extends Security_Controller {
                 if ($leave_type_id) {
                     $leave_data["leave_type_id"] = $leave_type_id;
                 } else {
-                    $leave_type_data = array("title" => $value, "color" => "#83c340");
+                    $leave_type_data = array("title" => $value, "color" => "#35d32f");
                     $saved_leave_type_id = $this->Leave_types_model->ci_save($leave_type_data);
                     $leave_data["leave_type_id"] = $saved_leave_type_id;
                     $this->leave_types_id_by_title[$value] = $saved_leave_type_id;

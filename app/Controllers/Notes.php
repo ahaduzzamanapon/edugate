@@ -261,7 +261,7 @@ class Notes extends Security_Controller {
             $public_icon = "<i data-feather='globe' class='icon-16'></i> ";
         }
 
-        $title_color_tag = "<span class='note-color-tag' style='background-color: " . ($data->color ? $data->color : "#83c340") . "'></span>";
+        $title_color_tag = "<span class='note-color-tag' style='background-color: " . ($data->color ? $data->color : "#35d32f") . "'></span>";
         $title = $title_color_tag . modal_anchor(get_uri("notes/view/" . $data->id), $public_icon . $data->title, array("title" => app_lang('note'), "data-post-id" => $data->id, "class" => "text-break-space w250"));
 
         $note_labels = "";

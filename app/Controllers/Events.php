@@ -535,8 +535,8 @@ class Events extends Security_Controller {
             "title" => $data->title,
             "start" => $data->start_date . " " . $data->start_time,
             "end" => $data->end_date . " " . $end_time,
-            "backgroundColor" => $data->color ? $data->color : "#83c340",
-            "borderColor" => $data->color ? $data->color : "#83c340",
+            "backgroundColor" => $data->color ? $data->color : "#35d32f",
+            "borderColor" => $data->color ? $data->color : "#35d32f",
             "extendedProps" => array(
                 "icon" => get_event_icon($data->share_with),
                 "encrypted_event_id" => encode_id($data->id, "event_id"), //to make is secure we'll use the encrypted id

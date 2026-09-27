@@ -1,7 +1,7 @@
 <div class="color-palet">
     <?php
     $selected_color = $model_info->color ? $model_info->color : "#4A8AF4";
-    $colors = array("#83c340", "#29c2c2", "#2d9cdb", "#aab7b7", "#f1c40f", "#e18a00", "#e74c3c", "#d43480", "#ad159e", "#37b4e1", "#34495e", "#dbadff");
+    $colors = array("#35d32f", "#29c2c2", "#2d9cdb", "#aab7b7", "#f1c40f", "#e18a00", "#e74c3c", "#d43480", "#ad159e", "#37b4e1", "#34495e", "#dbadff");
     $custom_color_active_class = "active";
 
     foreach ($colors as $color) {
@@ -12,8 +12,9 @@
         }
         echo "<span style='background-color:" . $color . "' class='color-tag clickable mr15 " . $active_class . "' data-color='" . $color . "'></span>";
     }
-    ?> 
-    <input type="color" id="custom-color" class="input-color <?php echo $custom_color_active_class; ?>" name="color" value="<?php echo $model_info->color ? $model_info->color : "#4A8AF4"; ?>" />
+    ?>
+    <input type="color" id="custom-color" class="input-color <?php echo $custom_color_active_class; ?>" name="color"
+        value="<?php echo $model_info->color ? $model_info->color : "#4A8AF4"; ?>" />
 </div>
 
 <script type="text/javascript">
