@@ -20,6 +20,26 @@
     </div>
 </div>
 
+<style>
+    #lead-table th, #lead-table td {
+        vertical-align: middle !important;
+    }
+    #lead-table td .avatar {
+        display: inline-block;
+        vertical-align: middle;
+        flex-shrink: 0;
+    }
+    #lead-table td a,
+    #lead-table td span {
+        vertical-align: middle;
+    }
+    #lead-table td .d-inline-flex {
+        display: inline-flex !important;
+        align-items: center;
+        white-space: nowrap;
+    }
+</style>
+
 <script type="text/javascript">
     $(document).ready(function () {
 
@@ -47,14 +67,14 @@
             ignoreSavedFilter: ignoreSavedFilter,
             order: [[5, "desc"]],
             columns: [
-                {title: "<?php echo app_lang("name") ?>", "class": "all", order_by: "company_name"},
-                {title: "<?php echo app_lang("primary_contact") ?>", order_by: "primary_contact"},
-                {title: "<?php echo app_lang("phone") ?>"},
-                {title: "Preferred Country", order_by: "preferred_country"},
-                {title: "<?php echo app_lang("owner") ?>", order_by: "owner_name"},
+                {title: "<?php echo app_lang("name") ?>", "class": "all w150", order_by: "company_name"},
+                {title: "<?php echo app_lang("primary_contact") ?>", "class": "w150", order_by: "primary_contact"},
+                {title: "<?php echo app_lang("phone") ?>", "class": "w125"},
+                {title: "Preferred Country", "class": "text-center w100", order_by: "preferred_country"},
+                {title: "<?php echo app_lang("owner") ?>", "class": "w150", order_by: "owner_name"},
                 {visible: false, searchable: false, order_by: "created_date"},
-                {title: "<?php echo app_lang("created_at") ?>", "iDataSort": 5, order_by: "created_date"},
-                {title: "<?php echo app_lang("status") ?>", order_by: "status"}
+                {title: "<?php echo app_lang("created_at") ?>", "class": "text-nowrap w125", "iDataSort": 5, order_by: "created_date"},
+                {title: "<?php echo app_lang("status") ?>", "class": "text-center w125", order_by: "status"}
                 <?php echo $custom_field_headers; ?>,
                 {title: '<i data-feather="menu" class="icon-16"></i>', "class": "text-center option w100"}
             ],

@@ -40,6 +40,27 @@
     </div>
 </div>
 
+<?php if (isset($owners_dropdown) && is_array($owners_dropdown)) { ?>
+<div class="form-group">
+    <div class="row">
+        <label for="owner_id" class="<?php echo $label_column; ?>"><?php echo app_lang('owner'); ?></label>
+        <div class="<?php echo $field_column; ?>">
+            <?php
+            $owners_options = array("" => "- " . app_lang("owner") . " -");
+            foreach ($owners_dropdown as $owner) {
+                $o_id = is_array($owner) ? (isset($owner['id']) ? $owner['id'] : '') : (isset($owner->id) ? $owner->id : '');
+                $o_text = is_array($owner) ? (isset($owner['text']) ? $owner['text'] : '') : (isset($owner->text) ? $owner->text : '');
+                if ($o_id) {
+                    $owners_options[$o_id] = $o_text;
+                }
+            }
+            echo form_dropdown("owner_id", $owners_options, array($model_info->owner_id), "class='select2' id='owner_id'");
+            ?>
+        </div>
+    </div>
+</div>
+<?php } ?>
+
 <div class="form-group">
     <div class="row">
         <label for="phone" class="<?php echo $label_column; ?>"><?php echo app_lang('phone'); ?></label>

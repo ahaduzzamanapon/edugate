@@ -148,8 +148,8 @@ class Security_Controller extends App_Controller {
             return true; //can access if user has permission
         } else if ($this->module_group === "ticket" && ($this->access_type === "specific" || $this->access_type === "assigned_only")) {
             return true; //can access if it's tickets module and user has a pertial access
-        } else if ($this->module_group === "lead" && $this->access_type === "own") {
-            return true; //can access if it's leads module and user has access to own leads
+        } else if ($this->module_group === "lead" && ($this->access_type === "own" || model("App\Models\Lead_role_permissions_model")->get_allowed_view_status_ids($this->login_user) !== null)) {
+            return true; //can access if it's leads module and user has access to own leads or role status permissions
         } else if ($this->module_group === "client" && ($this->access_type === "own" || $this->access_type === "read_only" || $this->access_type === "specific")) {
             return true;  //can access if it's clients module and user has a pertial access
         } else if ($this->module_group === "estimate" && $this->access_type === "own") {
@@ -804,18 +804,31 @@ class Security_Controller extends App_Controller {
             return true;
         } else if (get_array_value($permissions, "lead") == "all") {
             return true;
-        } else if (!$lead_id && get_array_value($permissions, "lead")) {
+        } else if (!$lead_id && (get_array_value($permissions, "lead") || model("App\Models\Lead_role_permissions_model")->get_allowed_view_status_ids($this->login_user) !== null)) {
             return true;
         } else if ($lead_id) {
             $lead_info = $this->Clients_model->get_one($lead_id);
-            if ($lead_info->id && get_array_value($permissions, "lead") == "own" && ($lead_info->owner_id == $this->login_user->id || in_array($this->login_user->id, explode(',', $lead_info->managers)))) {
-                return true;
+            if ($lead_info && $lead_info->id) {
+                // Tier status permission check
+                $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+                $allowed_status_ids = $lead_role_permissions_model->get_allowed_view_status_ids($this->login_user);
+                if ($allowed_status_ids !== null && in_array((int)$lead_info->lead_status_id, $allowed_status_ids)) {
+                    return true;
+                }
+
+                if (get_array_value($permissions, "lead") == "own" && ($lead_info->owner_id == $this->login_user->id || in_array($this->login_user->id, explode(',', (string)$lead_info->managers)))) {
+                    return true;
+                }
             }
         }
     }
 
     protected function show_own_leads_only_user_id() {
         if ($this->login_user->user_type === "staff") {
+            $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+            if ($lead_role_permissions_model->get_allowed_view_status_ids($this->login_user) !== null) {
+                return false;
+            }
             return get_array_value($this->login_user->permissions, "lead") == "own" ? $this->login_user->id : false;
         }
     }

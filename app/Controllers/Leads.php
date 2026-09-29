@@ -21,7 +21,12 @@ class Leads extends Security_Controller {
 
     private function validate_lead_access($lead_id) {
         if (!$this->can_access_this_lead($lead_id)) {
-            app_redirect("forbidden");
+            if ($this->request->isAJAX()) {
+                echo json_encode(array("success" => false, 'message' => app_lang('no_permission_to_access_this_lead') ?: "You do not have permission to access this lead."));
+                exit;
+            } else {
+                app_redirect("forbidden");
+            }
         }
     }
 
@@ -286,8 +291,8 @@ class Leads extends Security_Controller {
             $data["lead_status_id"] = $new_status_id;
         }
 
-        if ($this->request->getPost('owner_id')) {
-            $data["owner_id"] = $this->request->getPost('owner_id');
+        if ($this->request->getPost('owner_id') !== null) {
+            $data["owner_id"] = $this->request->getPost('owner_id') ? $this->request->getPost('owner_id') : 0;
         } else if (!$client_id) {
             $data["owner_id"] = $this->login_user->id;
         }
@@ -436,14 +441,14 @@ class Leads extends Security_Controller {
     private function _make_row($data, $custom_fields, $is_mobile = 0) {
         //primary contact 
         $image_url = get_avatar($data->contact_avatar);
-        $contact = "<span class='avatar avatar-xs mr10'><img src='$image_url' alt='...'></span> $data->primary_contact";
+        $contact = "<div class='d-inline-flex align-items-center text-nowrap'><span class='avatar avatar-xs mr10 flex-shrink-0'><img src='$image_url' alt='...'></span><span>$data->primary_contact</span></div>";
         $primary_contact = get_lead_contact_profile_link($data->primary_contact_id, $contact);
 
         //lead owner
         $owner = "-";
         if ($data->owner_id) {
             $owner_image_url = get_avatar($data->owner_avatar);
-            $owner_user = "<span class='avatar avatar-xs mr10'><img src='$owner_image_url' alt='...'></span> $data->owner_name";
+            $owner_user = "<div class='d-inline-flex align-items-center text-nowrap'><span class='avatar avatar-xs mr10 flex-shrink-0'><img src='$owner_image_url' alt='...'></span><span>$data->owner_name</span></div>";
             $owner = get_team_member_profile_link($data->owner_id, $owner_user);
         }
 
@@ -821,7 +826,20 @@ class Leads extends Security_Controller {
             $this->validate_lead_access($client_id);
 
             $view_data['model_info'] = $this->Clients_model->get_one($client_id);
-            $view_data['statuses'] = $this->Lead_status_model->get_details()->getResult();
+            $all_statuses = $this->Lead_status_model->get_details()->getResult();
+            $lead_role_permissions_model = model("App\Models\Lead_role_permissions_model");
+            if ($view_data['model_info']->lead_status_id && !$this->login_user->is_admin) {
+                $current_status_id = (int)$view_data['model_info']->lead_status_id;
+                $filtered_statuses = array();
+                foreach ($all_statuses as $st) {
+                    if ((int)$st->id === $current_status_id || $lead_role_permissions_model->can_transition($this->login_user, $current_status_id, (int)$st->id)) {
+                        $filtered_statuses[] = $st;
+                    }
+                }
+                $view_data['statuses'] = $filtered_statuses;
+            } else {
+                $view_data['statuses'] = $all_statuses;
+            }
             $view_data['sources'] = $this->Lead_source_model->get_details()->getResult();
 
             $view_data["custom_fields"] = $this->Custom_fields_model->get_combined_details("leads", $client_id, $this->login_user->is_admin, $this->login_user->user_type)->getResult();
@@ -1450,7 +1468,7 @@ class Leads extends Security_Controller {
             "from_context" => $from_context,
             "id" => $lead_id,
             "data" => $this->_row_data($lead_id),
-            "message" => "Lead transferred successfully."
+            "message" => "Lead confirmed successfully."
         ));
     }
 

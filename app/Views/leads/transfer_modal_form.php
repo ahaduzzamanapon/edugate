@@ -84,7 +84,7 @@
         <span data-feather="x" class="icon-16"></span> Cancel
     </button>
     <button type="submit" class="btn btn-primary" id="btn-submit-transfer">
-        <span data-feather="check-circle" class="icon-16 mr5"></span> Confirm & Transfer
+        <span data-feather="check-circle" class="icon-16 mr5"></span> Confirm
     </button>
 </div>
 <?php echo form_close(); ?>
