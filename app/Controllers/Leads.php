@@ -195,9 +195,12 @@ class Leads extends Security_Controller {
 
         //populate email from primary contact if not in clients table
         if ($lead_id && empty($view_data['model_info']->email)) {
-            $primary_contact = $this->Clients_model->get_primary_contact($lead_id);
-            if ($primary_contact && $primary_contact->email) {
-                $view_data['model_info']->email = $primary_contact->email;
+            $primary_contact_id = $this->Clients_model->get_primary_contact($lead_id);
+            if ($primary_contact_id) {
+                $contact_user = $this->Users_model->get_one($primary_contact_id);
+                if ($contact_user && $contact_user->email) {
+                    $view_data['model_info']->email = $contact_user->email;
+                }
             }
         }
 
@@ -320,8 +323,8 @@ class Leads extends Security_Controller {
             $first_name = $name_parts[0];
             $last_name = isset($name_parts[1]) ? $name_parts[1] : '';
 
-            $primary_contact = $this->Clients_model->get_primary_contact($save_id);
-            if ($primary_contact && $primary_contact->id) {
+            $primary_contact_id = $this->Clients_model->get_primary_contact($save_id);
+            if ($primary_contact_id) {
                 $contact_data = array(
                     "first_name" => $first_name,
                     "last_name" => $last_name,
@@ -330,7 +333,7 @@ class Leads extends Security_Controller {
                 if ($email) {
                     $contact_data["email"] = $email;
                 }
-                $this->Users_model->ci_save($contact_data, $primary_contact->id);
+                $this->Users_model->ci_save($contact_data, $primary_contact_id);
             } else if ($email || $data["phone"]) {
                 $contact_data = array(
                     "first_name" => $first_name,

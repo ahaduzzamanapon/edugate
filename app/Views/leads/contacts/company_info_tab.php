@@ -20,6 +20,7 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
+        $("#company-form .select2").select2();
         $("#company-form").appForm({
             isModal: false,
             onSuccess: function (result) {
@@ -27,4 +28,7 @@
             }
         });
     });
+    setTimeout(function () {
+        $("#company-form .select2").select2();
+    }, 100);
 </script>

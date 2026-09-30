@@ -183,6 +183,9 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $('[data-bs-toggle="tooltip"]').tooltip();
-        $("#lead-form .select2").select2();
+        $("#lead-form .select2, #company-form .select2, .select2").select2();
     });
+    setTimeout(function() {
+        $("#lead-form .select2, #company-form .select2, .select2").select2();
+    }, 100);
 </script>
