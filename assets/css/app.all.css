@@ -8781,6 +8781,12 @@ input[type=color] {
   max-height: 40px;
 }
 
+.brand-logo-mini img {
+  max-width: 32px;
+  max-height: 32px;
+  object-fit: contain;
+}
+
 .bg-transparent-white {
   background: rgba(255, 255, 255, 0.9215686275) !important;
   padding: 0 5px;

@@ -11,8 +11,8 @@
         <i data-feather="x" class="icon mt0"></i>
     </a>
     <div id="left-menu-topbar-button-container" class="d-block d-sm-none float-end"></div>
-    <a class="sidebar-brand brand-logo hidden-xs" href="<?php echo $dashboard_link; ?>"><img class="dashboard-image" src="<?php echo get_logo_url(); ?>" /></a>
-    <a class="sidebar-brand brand-logo-mini" href="<?php echo $dashboard_link; ?>"><img class="dashboard-image" src="<?php echo get_favicon_url(); ?>" /></a>
+    <a class="sidebar-brand brand-logo hidden-xs" href="<?php echo $dashboard_link; ?>"><img class="dashboard-image" src="<?php echo get_logo_url(); ?>" style="max-height: 42px; max-width: 180px; object-fit: contain;" /></a>
+    <a class="sidebar-brand brand-logo-mini" href="<?php echo $dashboard_link; ?>"><img class="dashboard-image" src="<?php echo get_favicon_url(); ?>" style="max-height: 32px; max-width: 32px; object-fit: contain;" /></a>
 
     <div class="sidebar-scroll">
         <ul id="sidebar-menu" class="sidebar-menu">
