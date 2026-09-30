@@ -222,7 +222,6 @@
                                     "data-msg-required" => app_lang("field_required"),
                                     "data-rule-minlength" => 6,
                                     "data-msg-minlength" => app_lang("enter_minimum_6_characters"),
-                                    "autocomplete" => "off",
                                     "style" => "z-index:auto;"
                                 ));
                                 ?>
@@ -248,7 +247,7 @@
                 <div class="form-group ">
                     <div class="col-md-12">  
                         <?php
-                        echo form_checkbox("email_login_details", "1", true, "id='email_login_details' class='form-check-input'");
+                        echo form_checkbox("email_login_details", "1", false, "id='email_login_details' class='form-check-input'");
                         ?> <label for="email_login_details"><?php echo app_lang('email_login_details'); ?></label>
                     </div>
                 </div>
@@ -296,7 +295,7 @@
         setTimeout(function () {
             $("#first_name").focus();
         }, 200);
-        $("#team_member-form .select2").select2();
+        $("#team_member-form select.select2").select2();
 
         setDatePicker("#date_of_hire");
 

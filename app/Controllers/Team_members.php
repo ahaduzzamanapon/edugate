@@ -207,8 +207,6 @@ class Team_members extends Security_Controller {
             "phone" => $this->request->getPost('phone'),
             "gender" => $this->request->getPost('gender'),
             "job_title" => $this->request->getPost('job_title'),
-            "phone" => $this->request->getPost('phone'),
-            "gender" => $this->request->getPost('gender'),
             "user_type" => "staff",
             "created_at" => get_current_utc_time()
         );
@@ -246,24 +244,27 @@ class Team_members extends Security_Controller {
             save_custom_fields("team_members", $user_id, $this->login_user->is_admin, $this->login_user->user_type);
 
             //send login details to user
-            if ($this->request->getPost('email_login_details')) {
+            if ($this->request->getPost('email_login_details') && get_setting("email_protocol")) {
+                try {
+                    //get the login details template
+                    $email_template = $this->Email_templates_model->get_final_template("login_info"); //use default template
 
-                //get the login details template
-                $email_template = $this->Email_templates_model->get_final_template("login_info"); //use default template
+                    $parser_data["SIGNATURE"] = $email_template->signature;
+                    $parser_data["USER_FIRST_NAME"] = $user_data["first_name"];
+                    $parser_data["USER_LAST_NAME"] = $user_data["last_name"];
+                    $parser_data["USER_LOGIN_EMAIL"] = $user_data["email"];
+                    $parser_data["USER_LOGIN_PASSWORD"] = $password;
+                    $parser_data["DASHBOARD_URL"] = base_url();
+                    $parser_data["LOGO_URL"] = get_logo_url();
+                    $parser_data["RECIPIENTS_EMAIL_ADDRESS"] = $user_data["email"];
 
-                $parser_data["SIGNATURE"] = $email_template->signature;
-                $parser_data["USER_FIRST_NAME"] = $user_data["first_name"];
-                $parser_data["USER_LAST_NAME"] = $user_data["last_name"];
-                $parser_data["USER_LOGIN_EMAIL"] = $user_data["email"];
-                $parser_data["USER_LOGIN_PASSWORD"] = $password;
-                $parser_data["DASHBOARD_URL"] = base_url();
-                $parser_data["LOGO_URL"] = get_logo_url();
-                $parser_data["RECIPIENTS_EMAIL_ADDRESS"] = $user_data["email"];
+                    $message = $this->parser->setData($parser_data)->renderString($email_template->message);
+                    $subject = $this->parser->setData($parser_data)->renderString($email_template->subject);
 
-                $message = $this->parser->setData($parser_data)->renderString($email_template->message);
-                $subject = $this->parser->setData($parser_data)->renderString($email_template->subject);
-
-                send_app_mail($this->request->getPost('email'), $subject, $message);
+                    send_app_mail($this->request->getPost('email'), $subject, $message);
+                } catch (\Throwable $e) {
+                    log_message('error', 'Error sending team member login email: ' . $e->getMessage());
+                }
             }
         }
 

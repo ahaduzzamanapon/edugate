@@ -471,6 +471,11 @@ if (!function_exists('send_app_mail')) {
         $email_protocol = get_setting("email_protocol");
         $email_from_address = get_setting("email_sent_from_address");
 
+        if (!$email_protocol || !$email_from_address) {
+            log_message('notice', 'Email sending skipped: email_protocol or email_sent_from_address is not configured.');
+            return false;
+        }
+
         if ($email_protocol === "microsoft_outlook") {
             $Outlook_smtp = new Outlook_smtp();
             return $Outlook_smtp->send_app_mail($to, $subject, $message, $optoins, $convert_message_to_html);
@@ -480,7 +485,8 @@ if (!function_exists('send_app_mail')) {
         } else {
             $email_config = array(
                 'charset' => 'utf-8',
-                'mailType' => 'html'
+                'mailType' => 'html',
+                'SMTPTimeout' => 5
             );
 
             //check mail sending method from settings
@@ -547,13 +553,15 @@ if (!function_exists('send_app_mail')) {
             }
 
             //send email
-            if ($email->send()) {
-                return true;
-            } else {
-                //show error message in none production version
-                if (ENVIRONMENT !== 'production') {
-                    throw new \Exception($email->printDebugger());
+            try {
+                if ($email->send()) {
+                    return true;
+                } else {
+                    log_message('error', $email->printDebugger(['headers', 'subject', 'body']));
+                    return false;
                 }
+            } catch (\Throwable $e) {
+                log_message('error', 'send_app_mail failed: ' . $e->getMessage());
                 return false;
             }
         }

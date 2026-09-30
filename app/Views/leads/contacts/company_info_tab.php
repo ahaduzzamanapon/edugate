@@ -20,15 +20,15 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#company-form .select2").select2();
         $("#company-form").appForm({
             isModal: false,
             onSuccess: function (result) {
                 appAlert.success(result.message, {duration: 10000});
             }
         });
+        $("#company-form select.select2").select2();
     });
     setTimeout(function () {
-        $("#company-form .select2").select2();
+        $("#company-form select.select2").select2();
     }, 100);
 </script>
