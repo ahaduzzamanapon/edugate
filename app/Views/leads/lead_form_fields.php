@@ -165,6 +165,23 @@
 
 <div class="form-group">
     <div class="row">
+        <label for="batch_name" class="<?php echo $label_column; ?>">Batch Name</label>
+        <div class="<?php echo $field_column; ?>">
+            <?php
+            echo form_input(array(
+                "id" => "batch_name",
+                "name" => "batch_name",
+                "value" => $model_info->batch_name ? $model_info->batch_name : "",
+                "class" => "form-control",
+                "placeholder" => "e.g. Batch 24, Spring 2026"
+            ));
+            ?>
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="row">
         <label for="preferred_intake" class="<?php echo $label_column; ?>">Preferred Intake</label>
         <div class="<?php echo $field_column; ?>">
             <?php

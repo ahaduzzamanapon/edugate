@@ -144,6 +144,8 @@ class Facebook_lead_webhook extends Controller {
                     $mapped['ielts_status'] = $fval;
                 } else if (strpos($fname, 'qualification') !== false || strpos($fname, 'education') !== false || strpos($fname, 'degree') !== false) {
                     $mapped['qualification'] = $fval;
+                } else if (strpos($fname, 'batch') !== false) {
+                    $mapped['batch_name'] = $fval;
                 } else if (strpos($fname, 'intake') !== false || strpos($fname, 'session') !== false) {
                     $mapped['preferred_intake'] = $fval;
                 } else {
@@ -170,6 +172,7 @@ class Facebook_lead_webhook extends Controller {
         $ielts_status = $data['ielts_status'] ?? '';
         $ielts_score = $data['ielts_score'] ?? '';
         $qualification = $data['qualification'] ?? '';
+        $batch_name = $data['batch_name'] ?? '';
         $preferred_intake = $data['preferred_intake'] ?? '';
 
         // Clean phone for duplicate check
@@ -215,6 +218,7 @@ class Facebook_lead_webhook extends Controller {
                        . "Email: $email\n"
                        . "Country: $country\n"
                        . "Qualification: $qualification\n"
+                       . ($batch_name ? "Batch: $batch_name\n" : "")
                        . "IELTS: $ielts_status\n"
                        . "Intake: $preferred_intake";
 
@@ -271,6 +275,7 @@ class Facebook_lead_webhook extends Controller {
             "ielts_status" => $ielts_status,
             "ielts_score" => $ielts_score,
             "qualification" => $qualification,
+            "batch_name" => $batch_name,
             "preferred_intake" => $preferred_intake
         );
 

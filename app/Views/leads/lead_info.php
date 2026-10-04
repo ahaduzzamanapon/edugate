@@ -111,6 +111,12 @@
                     <strong>Qualification:</strong> <span><?php echo $lead_info->qualification; ?></span>
                 </li>
             <?php } ?>
+            <?php if ($lead_info->batch_name) { ?>
+                <li class="list-group-item">
+                    <span class="mr10" title="Batch Name"><i data-feather="layers" class="icon-16"></i></span>
+                    <strong>Batch:</strong> <span class="badge bg-secondary text-white"><?php echo $lead_info->batch_name; ?></span>
+                </li>
+            <?php } ?>
             <?php if ($lead_info->ielts_status || $lead_info->ielts_score) { ?>
                 <li class="list-group-item">
                     <span class="mr10" title="IELTS Status"><i data-feather="award" class="icon-16"></i></span>

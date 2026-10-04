@@ -287,6 +287,7 @@ class Leads extends Security_Controller {
             "ielts_status" => $this->request->getPost('ielts_status'),
             "ielts_score" => $this->request->getPost('ielts_score'),
             "qualification" => $this->request->getPost('qualification'),
+            "batch_name" => $this->request->getPost('batch_name'),
             "preferred_intake" => $this->request->getPost('preferred_intake')
         );
 

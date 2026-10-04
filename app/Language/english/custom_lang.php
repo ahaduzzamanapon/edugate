@@ -49,6 +49,7 @@ $lang["no_team_members_found"] = "No other team members found.";
 $lang["can_create_sub_tasks"] = "Can create sub tasks";
 $lang["bulk_log_time"] = "Bulk Log Time";
 $lang["preferred_country"] = "Preferred Country";
+$lang["batch_name"] = "Batch Name";
 $lang["can_access_reports"] = "Can access reports";
 $lang["hot_leads"] = "Hot Leads";
 $lang["followup_leads"] = "Follow-up Leads";
