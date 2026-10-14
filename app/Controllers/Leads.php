@@ -243,6 +243,113 @@ class Leads extends Security_Controller {
         return $dropdown;
     }
 
+    /* check duplicate phone and email for leads (AJAX) */
+    function check_duplicate() {
+        $phone = $this->request->getPost('phone');
+        $email = $this->request->getPost('email');
+        $client_id = $this->request->getPost('client_id');
+
+        $result = $this->_check_duplicate($phone, $email, $client_id);
+        echo json_encode($result);
+    }
+
+    private function _check_duplicate($phone, $email, $client_id = 0) {
+        $phone = trim($phone ?? '');
+        $email = strtolower(trim($email ?? ''));
+        $client_id = (int)$client_id;
+
+        $db = \Config\Database::connect();
+        $clients_table = $db->prefixTable('clients');
+        $users_table = $db->prefixTable('users');
+        $lead_status_table = $db->prefixTable('lead_status');
+
+        $phone_match = null;
+        $email_match = null;
+
+        $clean_phone = preg_replace('/[^0-9]/', '', $phone);
+        if ($clean_phone && strlen($clean_phone) >= 7) {
+            $last_digits = strlen($clean_phone) >= 10 ? substr($clean_phone, -10) : substr($clean_phone, -7);
+            $escaped_last = $db->escapeLikeString($last_digits);
+            $escaped_raw = $db->escape($phone);
+
+            $exclude_sql = $client_id ? " AND c.id != $client_id " : "";
+
+            $phone_sql = "SELECT c.id, c.company_name, c.phone, COALESCE(NULLIF(c.email, ''), u.email) as email,
+                                 CONCAT(o.first_name, ' ', o.last_name) AS owner_name,
+                                 ls.title AS status_title
+                          FROM $clients_table c 
+                          LEFT JOIN $users_table u ON u.client_id = c.id AND u.deleted = 0
+                          LEFT JOIN $users_table o ON o.id = c.owner_id AND o.deleted = 0
+                          LEFT JOIN $lead_status_table ls ON ls.id = c.lead_status_id
+                          WHERE c.deleted = 0 AND c.is_lead = 1 $exclude_sql
+                            AND (c.phone LIKE '%$escaped_last%' OR u.phone LIKE '%$escaped_last%' OR c.phone = $escaped_raw OR u.phone = $escaped_raw)
+                          LIMIT 1";
+            $phone_match = $db->query($phone_sql)->getRow();
+        }
+
+        if ($email && strlen($email) > 3) {
+            $escaped_email = $db->escape($email);
+            $exclude_sql = $client_id ? " AND c.id != $client_id " : "";
+
+            $email_sql = "SELECT c.id, c.company_name, c.phone, COALESCE(NULLIF(c.email, ''), u.email) as email,
+                                 CONCAT(o.first_name, ' ', o.last_name) AS owner_name,
+                                 ls.title AS status_title
+                          FROM $clients_table c 
+                          LEFT JOIN $users_table u ON u.client_id = c.id AND u.deleted = 0
+                          LEFT JOIN $users_table o ON o.id = c.owner_id AND o.deleted = 0
+                          LEFT JOIN $lead_status_table ls ON ls.id = c.lead_status_id
+                          WHERE c.deleted = 0 AND c.is_lead = 1 $exclude_sql
+                            AND (LOWER(TRIM(c.email)) = $escaped_email OR LOWER(TRIM(u.email)) = $escaped_email)
+                          LIMIT 1";
+            $email_match = $db->query($email_sql)->getRow();
+        }
+
+        $phone_exists = !empty($phone_match);
+        $email_exists = !empty($email_match);
+
+        $status = 'none';
+        $message = '';
+
+        if ($phone_exists && $email_exists) {
+            $status = 'blocked';
+            if ($phone_match->id == $email_match->id) {
+                $info = $phone_match->company_name ? $phone_match->company_name : "Lead #$phone_match->id";
+                if ($phone_match->owner_name) {
+                    $info .= " | Owner: " . trim($phone_match->owner_name);
+                }
+                $message = "This phone number and email already exist in the database (Lead: $info). You cannot add this lead.";
+            } else {
+                $info_phone = $phone_match->company_name ? $phone_match->company_name : "Lead #$phone_match->id";
+                $info_email = $email_match->company_name ? $email_match->company_name : "Lead #$email_match->id";
+                $message = "Both phone number (Lead: $info_phone) and email (Lead: $info_email) already exist in the database. You cannot add this lead.";
+            }
+        } else if ($phone_exists) {
+            $status = 'warning';
+            $info = $phone_match->company_name ? $phone_match->company_name : "Lead #$phone_match->id";
+            if ($phone_match->owner_name) {
+                $info .= " | Owner: " . trim($phone_match->owner_name);
+            }
+            $message = "Notice: A lead with this phone number already exists ($info). You can still save.";
+        } else if ($email_exists) {
+            $status = 'warning';
+            $info = $email_match->company_name ? $email_match->company_name : "Lead #$email_match->id";
+            if ($email_match->owner_name) {
+                $info .= " | Owner: " . trim($email_match->owner_name);
+            }
+            $message = "Notice: A lead with this email already exists ($info). You can still save.";
+        }
+
+        return array(
+            "phone_exists" => $phone_exists,
+            "email_exists" => $email_exists,
+            "both_exist" => ($phone_exists && $email_exists),
+            "status" => $status,
+            "message" => $message,
+            "phone_lead" => $phone_match ? array("id" => $phone_match->id, "name" => $phone_match->company_name) : null,
+            "email_lead" => $email_match ? array("id" => $email_match->id, "name" => $email_match->company_name) : null
+        );
+    }
+
     /* insert or update a lead */
 
     function save() {
@@ -275,12 +382,20 @@ class Leads extends Security_Controller {
             }
         }
 
+        $phone = $this->request->getPost('phone');
         $email = trim($this->request->getPost('email') ? $this->request->getPost('email') : "");
+
+        // Duplicate check: if both phone and email exist in database -> block with error
+        $dup_check = $this->_check_duplicate($phone, $email, $client_id);
+        if ($dup_check['both_exist']) {
+            echo json_encode(array("success" => false, 'message' => $dup_check['message']));
+            return;
+        }
 
         $data = array(
             "company_name" => $this->request->getPost('company_name'),
             "type" => $this->request->getPost('account_type') ? $this->request->getPost('account_type') : "person",
-            "phone" => $this->request->getPost('phone'),
+            "phone" => $phone,
             "email" => $email,
             "is_lead" => 1,
             "preferred_country" => $this->request->getPost('preferred_country'),
@@ -355,7 +470,21 @@ class Leads extends Security_Controller {
                 log_notification("lead_created", array("lead_id" => $save_id), $this->login_user->id);
             }
 
-            echo json_encode(array("success" => true, "data" => $this->_row_data($save_id), 'id' => $save_id, 'view' => $this->request->getPost('view'), 'message' => app_lang('record_saved')));
+            $success_message = app_lang('record_saved');
+            $warning_message = '';
+            if ($dup_check['status'] === 'warning') {
+                $warning_message = $dup_check['message'];
+                $success_message .= " (" . $dup_check['message'] . ")";
+            }
+
+            echo json_encode(array(
+                "success" => true,
+                "data" => $this->_row_data($save_id),
+                'id' => $save_id,
+                'view' => $this->request->getPost('view'),
+                'message' => $success_message,
+                'warning_message' => $warning_message
+            ));
         } else {
             echo json_encode(array("success" => false, 'message' => app_lang('error_occurred')));
         }

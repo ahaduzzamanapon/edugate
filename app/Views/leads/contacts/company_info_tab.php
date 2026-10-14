@@ -23,7 +23,11 @@
         $("#company-form").appForm({
             isModal: false,
             onSuccess: function (result) {
-                appAlert.success(result.message, {duration: 10000});
+                if (result.warning_message) {
+                    appAlert.warning(result.warning_message, {duration: 10000});
+                } else {
+                    appAlert.success(result.message, {duration: 10000});
+                }
             }
         });
         $("#company-form select.select2").select2();

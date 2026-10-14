@@ -15,6 +15,9 @@
     $(document).ready(function () {
         $("#lead-form").appForm({
             onSuccess: function (result) {
+                if (result.warning_message) {
+                    appAlert.warning(result.warning_message, {duration: 10000});
+                }
                 if (result.view === "details") {
                     appAlert.success(result.message, {duration: 10000});
                     setTimeout(function () {

@@ -97,6 +97,15 @@
     </div>
 </div>
 
+<div class="form-group mb10" id="lead-duplicate-alert-row" style="display:none;">
+    <div class="row">
+        <label class="<?php echo $label_column; ?>"></label>
+        <div class="<?php echo $field_column; ?>">
+            <div id="lead-duplicate-alert-area"></div>
+        </div>
+    </div>
+</div>
+
 <div class="form-group">
     <div class="row">
         <label for="preferred_country" class="<?php echo $label_column; ?>">Preferred Country</label>
@@ -201,6 +210,70 @@
     $(document).ready(function() {
         $('[data-bs-toggle="tooltip"]').tooltip();
         $("#lead-form select.select2, #company-form select.select2").select2();
+
+        var dupTimer = null;
+        function checkDuplicateLead() {
+            var $phoneInput = $("#phone");
+            var $emailInput = $("#email");
+            var $form = $phoneInput.closest("form");
+            var phone = $.trim($phoneInput.val());
+            var email = $.trim($emailInput.val());
+            var clientId = $form.find("input[name='id']").val() || 0;
+
+            if (!phone && !email) {
+                $("#lead-duplicate-alert-row").hide();
+                $("#lead-duplicate-alert-area").empty();
+                $form.find("[type='submit']").removeAttr("disabled");
+                return;
+            }
+
+            $.ajax({
+                url: "<?php echo get_uri('leads/check_duplicate'); ?>",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    phone: phone,
+                    email: email,
+                    client_id: clientId
+                },
+                success: function(res) {
+                    if (res && res.status === "blocked") {
+                        $("#lead-duplicate-alert-area").html(
+                            '<div class="alert alert-danger mb0 py-2" role="alert" style="font-size:13px; font-weight:500;">' +
+                            '<span data-feather="x-circle" class="icon-16 mr5"></span> ' +
+                            res.message +
+                            '</div>'
+                        );
+                        $("#lead-duplicate-alert-row").show();
+                        if (typeof feather !== "undefined") {
+                            feather.replace();
+                        }
+                        $form.find("[type='submit']").attr("disabled", "disabled");
+                    } else if (res && res.status === "warning") {
+                        $("#lead-duplicate-alert-area").html(
+                            '<div class="alert alert-warning mb0 py-2" role="alert" style="font-size:13px; font-weight:500;">' +
+                            '<span data-feather="alert-triangle" class="icon-16 mr5"></span> ' +
+                            res.message +
+                            '</div>'
+                        );
+                        $("#lead-duplicate-alert-row").show();
+                        if (typeof feather !== "undefined") {
+                            feather.replace();
+                        }
+                        $form.find("[type='submit']").removeAttr("disabled");
+                    } else {
+                        $("#lead-duplicate-alert-row").hide();
+                        $("#lead-duplicate-alert-area").empty();
+                        $form.find("[type='submit']").removeAttr("disabled");
+                    }
+                }
+            });
+        }
+
+        $(document).on("input change blur", "#lead-form #phone, #lead-form #email, #company-form #phone, #company-form #email", function() {
+            clearTimeout(dupTimer);
+            dupTimer = setTimeout(checkDuplicateLead, 350);
+        });
     });
     setTimeout(function() {
         $("#lead-form select.select2, #company-form select.select2").select2();
