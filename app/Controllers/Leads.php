@@ -585,14 +585,13 @@ class Leads extends Security_Controller {
             $owner = get_team_member_profile_link($data->owner_id, $owner_user);
         }
 
-        $phone = $data->phone ? ($data->phone . "<br/><span class='hide'>, </span>")  : "";
+        $phone = $data->phone ? $data->phone : "";
         if ($data->primary_contact_phone && $data->primary_contact_phone != $data->phone) {
-            $phone .= $data->primary_contact_phone;
-        }
-        if ($data->email) {
-            $phone .= ($phone ? "<br/>" : "") . "<span class='text-muted' style='font-size:12px;'><i data-feather='mail' class='icon-12 mr5'></i>" . $data->email . "</span>";
+            $phone .= ($phone ? ", " : "") . $data->primary_contact_phone;
         }
         $phone = $phone ?: "-";
+
+        $email = $data->email ? "<a href='mailto:$data->email' class='text-default'>$data->email</a>" : "-";
 
         if ($is_mobile) {
             $title_content = "<div class='p-1'><span>" . $data->company_name . "</span>
@@ -613,6 +612,7 @@ class Leads extends Security_Controller {
             $name,
             $data->primary_contact ? $primary_contact : "",
             $phone,
+            $email,
             $country,
             $owner,
             $data->created_date,

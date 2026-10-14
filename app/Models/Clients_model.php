@@ -140,6 +140,8 @@ class Clients_model extends Crud_model {
             "status" => "lead_status_title",
             "owner_name" => "owner_details.owner_name",
             "primary_contact" => "primary_contact",
+            "phone" => $clients_table . ".phone",
+            "email" => "email",
             "client_groups" => "client_groups",
             "preferred_country" => $clients_table . ".preferred_country"
         );

@@ -20,16 +20,17 @@
             source: '<?php echo_uri("leads/list_data/") ?>' + mobileView,
             serverSide: true,
             smartFilterIdentity: "dashboard_recent_leads",
-            order: [[5, "desc"]],
+            order: [[6, "desc"]],
             displayLength: 10,
             columns: [
                 {title: "<?php echo app_lang("name") ?>", "class": "all", order_by: "company_name"},
                 {title: "<?php echo app_lang("primary_contact") ?>", order_by: "primary_contact"},
                 {title: "<?php echo app_lang("phone") ?>"},
+                {title: "<?php echo app_lang("email") ?>"},
                 {title: "Preferred Country", order_by: "preferred_country"},
                 {title: "<?php echo app_lang("owner") ?>", order_by: "owner_name"},
                 {visible: false, searchable: false, order_by: "created_date"},
-                {title: "<?php echo app_lang("created_at") ?>", "iDataSort": 5, order_by: "created_date"},
+                {title: "<?php echo app_lang("created_at") ?>", "iDataSort": 6, order_by: "created_date"},
                 {title: "<?php echo app_lang("status") ?>", order_by: "status"}
                 <?php echo isset($custom_field_headers) ? $custom_field_headers : ""; ?>,
                 {title: '<i data-feather="menu" class="icon-16"></i>', "class": "text-center option w100"}

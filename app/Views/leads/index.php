@@ -65,15 +65,16 @@
             smartFilterIdentity: "all_leads_list", //a to z and _ only. should be unique to avoid conflicts
             selectionHandler: {batchUpdateUrl: batchUpdateUrl, batchDeleteUrl: batchDeleteUrl},
             ignoreSavedFilter: ignoreSavedFilter,
-            order: [[5, "desc"]],
+            order: [[6, "desc"]],
             columns: [
                 {title: "<?php echo app_lang("name") ?>", "class": "all w150", order_by: "company_name"},
                 {title: "<?php echo app_lang("primary_contact") ?>", "class": "w150", order_by: "primary_contact"},
-                {title: "<?php echo app_lang("phone") ?>", "class": "w125"},
+                {title: "<?php echo app_lang("phone") ?>", "class": "w125", order_by: "phone"},
+                {title: "<?php echo app_lang("email") ?>", "class": "w150", order_by: "email"},
                 {title: "Preferred Country", "class": "text-center w100", order_by: "preferred_country"},
                 {title: "<?php echo app_lang("owner") ?>", "class": "w150", order_by: "owner_name"},
                 {visible: false, searchable: false, order_by: "created_date"},
-                {title: "<?php echo app_lang("created_at") ?>", "class": "text-nowrap w125", "iDataSort": 5, order_by: "created_date"},
+                {title: "<?php echo app_lang("created_at") ?>", "class": "text-nowrap w125", "iDataSort": 6, order_by: "created_date"},
                 {title: "<?php echo app_lang("status") ?>", "class": "text-center w125", order_by: "status"}
                 <?php echo $custom_field_headers; ?>,
                 {title: '<i data-feather="menu" class="icon-16"></i>', "class": "text-center option w100"}
@@ -88,8 +89,8 @@
                 <?php echo $custom_field_filters; ?>
             ],
             rangeDatepicker: [{startDate: {name: "start_date", value: ""}, endDate: {name: "end_date", value: ""}, label: "<?php echo app_lang('created_date'); ?>", showClearButton: true}],
-            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 6, 7], '<?php echo $custom_field_headers; ?>'),
-            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 6, 7], '<?php echo $custom_field_headers; ?>')
+            printColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 7, 8], '<?php echo $custom_field_headers; ?>'),
+            xlsColumns: combineCustomFieldsColumns([0, 1, 2, 3, 4, 5, 7, 8], '<?php echo $custom_field_headers; ?>')
     });
     }
     );
